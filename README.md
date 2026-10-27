@@ -2,6 +2,12 @@
 
 Aplicación de escritorio para **Windows**, en español, para captura **manual** de pH, temperatura y humedad, análisis por lote y documentación de evidencia de ingeniería. Incluye su propio motor Electron y abre una ventana propia, sin navegador externo ni instalaciones de Node para el usuario. La interfaz usa React + TypeScript, Recharts y almacenamiento local validado con Zod. No necesita sensores, backend, cuenta ni claves externas. Se conserva una alternativa web para desarrollo.
 
+## Descargar y abrir con doble clic
+
+**[Descargar Q-MONITOR.exe para Windows](https://github.com/du38atencion/APP-ESTADISTICA-/raw/refs/heads/main/descargas/Q-MONITOR.exe)**
+
+Guarda el archivo y ábrelo. No necesitas descargar el código, instalar Node.js ni abrir una terminal. Es el ejecutable portátil completo para Windows 10/11 x64. [Ayuda de uso](WINDOWS.md). También está disponible en la carpeta `descargas/` del repositorio; en su página usa **Download raw file**. La huella SHA-256 está junto al archivo.
+
 ## Aplicación de escritorio Windows (.exe)
 
 La entrega principal para Windows es **Q-MONITOR-Instalador-1.0.0-x64.exe**. Instala la aplicación, crea un acceso directo y abre una ventana propia, sin navegador externo, Node.js ni terminal para el usuario. Descarga el instalador en la sección **Releases** del repositorio. [Instrucciones para Windows](WINDOWS.md).

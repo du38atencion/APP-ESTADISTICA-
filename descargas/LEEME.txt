@@ -1,0 +1,10 @@
+Q-MONITOR para Windows 10/11 x64
+
+Abre Q-MONITOR.exe con doble clic. Es una aplicación de escritorio completa.
+No necesita Node, terminal ni navegador externo. El primer inicio puede tardar
+unos segundos mientras extrae sus componentes.
+
+Los datos se guardan en %APPDATA%\Q-MONITOR. Usa Reportes para guardar respaldos JSON.
+El EXE no tiene firma digital comercial; puede aparecer editor desconocido.
+
+Instrucciones completas en WINDOWS.md, en la raíz del repositorio.
