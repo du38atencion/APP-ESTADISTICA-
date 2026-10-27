@@ -4,9 +4,11 @@ Aplicación de escritorio para **Windows**, en español, para captura **manual**
 
 ## Descargar y abrir con doble clic
 
-**[Descargar Q-MONITOR.exe para Windows](https://github.com/du38atencion/APP-ESTADISTICA-/raw/refs/heads/main/descargas/Q-MONITOR.exe)**
+**[Descargar Q-MONITOR.exe para Windows](https://github.com/du38atencion/APP-ESTADISTICA-/releases/download/v1.0.0/Q-MONITOR-1.0.0-Portatil-x64.exe)**
 
-Guarda el archivo y ábrelo. No necesitas descargar el código, instalar Node.js ni abrir una terminal. Es el ejecutable portátil completo para Windows 10/11 x64. [Ayuda de uso](WINDOWS.md). También está disponible en la carpeta `descargas/` del repositorio; en su página usa **Download raw file**. La huella SHA-256 está junto al archivo.
+Guarda el archivo y ábrelo. No necesitas descargar el código, instalar Node.js ni abrir una terminal. Es el ejecutable portátil completo para Windows 10/11 x64. [Ayuda de uso](WINDOWS.md). También está disponible en la carpeta `descargas/` del repositorio; en su página usa **Download raw file**. La publicación incluye la huella SHA-256 del ejecutable.
+
+La entrega 1.0.0 fue compilada y sus pruebas de escritorio pasaron también en Windows: [ejecución de GitHub Actions](https://github.com/du38atencion/APP-ESTADISTICA-/actions/runs/40439409475). Se verificaron la descarga pública y la huella SHA-256.
 
 ## Aplicación de escritorio Windows (.exe)
 

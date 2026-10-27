@@ -4,7 +4,7 @@ Aplicación de escritorio con ventana propia. No abre Chrome ni Edge y no necesi
 
 ## Abrir directamente sin instalar
 
-Descarga **[Q-MONITOR.exe](https://github.com/du38atencion/APP-ESTADISTICA-/raw/refs/heads/main/descargas/Q-MONITOR.exe)** y ábrelo con doble clic. También puedes obtener **Q-MONITOR-1.0.0-Portatil-x64.exe** en Releases cuando termine la compilación de GitHub Actions. Es una aplicación de escritorio autocontenida, no un HTML. En el primer inicio puede tardar unos segundos en extraer sus componentes; no instala Node ni abre terminales. Guarda los datos en el mismo perfil local de Q-MONITOR.
+Descarga **[Q-MONITOR.exe](https://github.com/du38atencion/APP-ESTADISTICA-/releases/download/v1.0.0/Q-MONITOR-1.0.0-Portatil-x64.exe)** y ábrelo con doble clic. También está publicado en la sección **Releases**, con un instalador opcional. La versión 1.0.0 se compiló y pasó sus pruebas de escritorio en Windows. Es una aplicación de escritorio autocontenida, no un HTML. En el primer inicio puede tardar unos segundos en extraer sus componentes; no instala Node ni abre terminales. Guarda los datos en el mismo perfil local de Q-MONITOR.
 
 ## Descargar e instalar
 
