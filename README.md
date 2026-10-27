@@ -4,15 +4,15 @@ Aplicación de escritorio para **Windows**, en español, para captura **manual**
 
 ## Descargar y abrir con doble clic
 
-**[Descargar Q-MONITOR.exe para Windows](https://github.com/du38atencion/APP-ESTADISTICA-/releases/download/v1.0.0/Q-MONITOR-1.0.0-Portatil-x64.exe)**
+**[Descargar Q-MONITOR.exe para Windows](https://github.com/du38atencion/APP-ESTADISTICA-/releases/download/v1.0.1/Q-MONITOR-1.0.1-Portatil-x64.exe)**
 
-Guarda el archivo y ábrelo. No necesitas descargar el código, instalar Node.js ni abrir una terminal. Es el ejecutable portátil completo para Windows 10/11 x64. [Ayuda de uso](WINDOWS.md). También está disponible en la carpeta `descargas/` del repositorio; en su página usa **Download raw file**. La publicación incluye la huella SHA-256 del ejecutable.
+Guarda el archivo y ábrelo. No necesitas descargar el código, instalar Node.js ni abrir una terminal. Es el ejecutable portátil completo para Windows 10/11 x64. [Ayuda de uso](WINDOWS.md). La publicación incluye la huella SHA-256 del ejecutable.
 
-La entrega 1.0.0 fue compilada y sus pruebas de escritorio pasaron también en Windows: [ejecución de GitHub Actions](https://github.com/du38atencion/APP-ESTADISTICA-/actions/runs/40439409475). Se verificaron la descarga pública y la huella SHA-256.
+La versión 1.0.1 corrige los diálogos de anulación y revisión en la aplicación de escritorio. Cierra la versión anterior antes de abrir la nueva; el perfil y las mediciones se conservan. [Cambios](CHANGELOG.md).
 
 ## Aplicación de escritorio Windows (.exe)
 
-La entrega principal para Windows es **Q-MONITOR-Instalador-1.0.0-x64.exe**. Instala la aplicación, crea un acceso directo y abre una ventana propia, sin navegador externo, Node.js ni terminal para el usuario. Descarga el instalador en la sección **Releases** del repositorio. [Instrucciones para Windows](WINDOWS.md).
+La entrega principal para Windows es **Q-MONITOR-Instalador-1.0.1-x64.exe**. Instala la aplicación, crea un acceso directo y abre una ventana propia, sin navegador externo, Node.js ni terminal para el usuario. Descarga el instalador en la sección **Releases** del repositorio. [Instrucciones para Windows](WINDOWS.md).
 
 Los datos de escritorio quedan en **%APPDATA%\Q-MONITOR**, separados de la versión web; exporta respaldos JSON desde Reportes. No se necesita conexión a Internet para usarlo.
 

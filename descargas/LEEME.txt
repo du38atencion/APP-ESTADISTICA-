@@ -1,10 +1,9 @@
-Q-MONITOR para Windows 10/11 x64
+La versión actual de Q-MONITOR se descarga desde GitHub Releases:
+https://github.com/du38atencion/APP-ESTADISTICA-/releases/latest
 
-Abre Q-MONITOR.exe con doble clic. Es una aplicación de escritorio completa.
-No necesita Node, terminal ni navegador externo. El primer inicio puede tardar
-unos segundos mientras extrae sus componentes.
+Descarga el archivo Portatil-x64.exe para abrirlo sin instalar componentes,
+o el archivo Instalador para crear un acceso directo.
 
-Los datos se guardan en %APPDATA%\Q-MONITOR. Usa Reportes para guardar respaldos JSON.
-El EXE no tiene firma digital comercial; puede aparecer editor desconocido.
-
-Instrucciones completas en WINDOWS.md, en la raíz del repositorio.
+La versión 1.0.1 corrige los botones Anular y Documentar revisión.
+Cierra la versión anterior antes de abrir la nueva. No borres la carpeta de datos.
+Las versiones anteriores se conservan en Releases.

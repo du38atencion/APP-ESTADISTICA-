@@ -196,8 +196,13 @@ test("criterios configurables, revisión y límites históricos", async ({
   await fillMeasurement(page);
   await expect(page.locator("tbody")).toContainText("Pendiente de revisión");
   await page.locator("tbody .link").click();
-  page.once("dialog", (d) => d.accept("Responsable QA"));
   await page.getByRole("button", { name: "Documentar revisión" }).click();
+  const review = page.getByRole("dialog", {
+    name: "Documentar revisión",
+    exact: true,
+  });
+  await review.getByLabel("Responsable *").fill("Responsable QA");
+  await review.getByRole("button", { name: "Confirmar revisión" }).click();
   await expect(page.locator("tbody")).toContainText("Conforme");
   await page
     .getByRole("button", { name: "Configuración", exact: true })
@@ -272,4 +277,86 @@ test("gráficas analíticas y control con validación de supuestos", async ({
     else expect(await page.locator("svg").count()).toBeGreaterThan(0);
   }
   expect(errors).toEqual([]);
+});
+
+test("anulación exige motivo, se puede cancelar y conserva trazabilidad al recargar", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await fillMeasurement(page);
+  await page.getByRole("button", { name: "Anular", exact: true }).click();
+  let action = page.getByRole("dialog", {
+    name: "Anular medición",
+    exact: true,
+  });
+  await expect(action).toBeVisible();
+  await expect(
+    action.getByRole("button", { name: "Confirmar anulación" }),
+  ).toBeDisabled();
+  await action.getByLabel("Motivo de la anulación *").fill("   ");
+  await expect(
+    action.getByRole("button", { name: "Confirmar anulación" }),
+  ).toBeDisabled();
+  await page.keyboard.press("Escape");
+  await expect(action).not.toBeVisible();
+  await expect(page.locator("tbody tr")).toHaveCount(1);
+  await page.getByRole("button", { name: "Anular", exact: true }).click();
+  action = page.getByRole("dialog", { name: "Anular medición", exact: true });
+  await action
+    .getByLabel("Motivo de la anulación *")
+    .fill("Lectura transcrita incorrectamente");
+  await action.getByLabel("Responsable *").fill("Control de calidad");
+  await action.getByRole("button", { name: "Confirmar anulación" }).click();
+  await expect(page.locator("tbody tr")).toHaveCount(0);
+  await expect(page.getByRole("status")).toContainText("anulada");
+  await page.reload();
+  await page
+    .getByRole("button", { name: "Lotes e historial", exact: true })
+    .click();
+  await expect(page.locator("tbody tr")).toHaveCount(0);
+  const data = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem("qmonitor-real")!),
+  );
+  expect(data.measurements).toHaveLength(1);
+  expect(data.measurements[0]).toMatchObject({
+    voided: true,
+    ph: 7.1,
+    temperature: 24,
+    humidity: 55,
+  });
+  expect(data.measurements[0].audit.at(-1)).toMatchObject({
+    actor: "Control de calidad",
+    action: "Anulación",
+    reason: "Lectura transcrita incorrectamente",
+  });
+});
+
+test("un fallo de almacenamiento mantiene abierto el diálogo sin anular el registro", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await fillMeasurement(page);
+  await page.getByRole("button", { name: "Anular", exact: true }).click();
+  const action = page.getByRole("dialog", {
+    name: "Anular medición",
+    exact: true,
+  });
+  await action
+    .getByLabel("Motivo de la anulación *")
+    .fill("Registro duplicado");
+  await page.evaluate(() => {
+    Storage.prototype.setItem = () => {
+      throw new DOMException("Espacio agotado", "QuotaExceededError");
+    };
+  });
+  await action.getByRole("button", { name: "Confirmar anulación" }).click();
+  await expect(action).toBeVisible();
+  await expect(action.getByRole("alert")).toContainText("No se guardaron");
+  const record = await page.evaluate(
+    () => JSON.parse(localStorage.getItem("qmonitor-real")!).measurements[0],
+  );
+  expect(record.voided).toBe(false);
+  expect(record.audit).toHaveLength(1);
+  await action.getByRole("button", { name: "Cancelar", exact: true }).click();
+  await expect(page.locator("tbody tr")).toHaveCount(1);
 });

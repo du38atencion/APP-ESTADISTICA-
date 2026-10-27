@@ -4,11 +4,17 @@ Aplicación de escritorio con ventana propia. No abre Chrome ni Edge y no necesi
 
 ## Abrir directamente sin instalar
 
-Descarga **[Q-MONITOR.exe](https://github.com/du38atencion/APP-ESTADISTICA-/releases/download/v1.0.0/Q-MONITOR-1.0.0-Portatil-x64.exe)** y ábrelo con doble clic. También está publicado en la sección **Releases**, con un instalador opcional. La versión 1.0.0 se compiló y pasó sus pruebas de escritorio en Windows. Es una aplicación de escritorio autocontenida, no un HTML. En el primer inicio puede tardar unos segundos en extraer sus componentes; no instala Node ni abre terminales. Guarda los datos en el mismo perfil local de Q-MONITOR.
+Descarga **[Q-MONITOR.exe](https://github.com/du38atencion/APP-ESTADISTICA-/releases/download/v1.0.1/Q-MONITOR-1.0.1-Portatil-x64.exe)** y ábrelo con doble clic. También está publicado en la sección **Releases**, con un instalador opcional. Es una aplicación de escritorio autocontenida, no un HTML. En el primer inicio puede tardar unos segundos en extraer sus componentes; no instala Node ni abre terminales. Guarda los datos en el mismo perfil local de Q-MONITOR.
+
+## Actualizar desde la versión 1.0.0
+
+Cierra la aplicación anterior con **Archivo → Salir** antes de abrir la versión 1.0.1. No necesitas desinstalar ni borrar datos: se mantiene el mismo perfil local. Como precaución, puedes descargar un respaldo JSON desde Reportes antes de actualizar.
+
+Para anular: **Lotes e historial → Anular**, completa responsable y motivo y pulsa **Confirmar anulación**. Cancelar o cerrar el diálogo no cambia el registro. Se excluye de los análisis pero permanece en la trazabilidad. También se corrigió el diálogo de Documentar revisión.
 
 ## Descargar e instalar
 
-1. En **Releases**, descarga **Q-MONITOR-Instalador-1.0.0-x64.exe**.
+1. En **Releases**, descarga **Q-MONITOR-Instalador-1.0.1-x64.exe**.
 2. Abre el archivo con doble clic. Se instala para tu usuario y crea un acceso directo **Q-MONITOR** en el escritorio y en Inicio.
 3. La aplicación se abre al finalizar. Después usa el acceso directo para iniciarla.
 

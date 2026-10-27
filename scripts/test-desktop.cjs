@@ -20,7 +20,13 @@ const assert = require("node:assert/strict");
   };
   let app;
   try {
-    app = await electron.launch(options);
+    app = await electron.launch({
+      ...options,
+      args: [
+        process.env.Q_MONITOR_PREVIOUS_APP || root,
+        ...options.args.slice(1),
+      ],
+    });
     let page = await app.firstWindow();
     page.on("pageerror", (error) => errors.push(error.message));
     await expect(
@@ -92,6 +98,114 @@ const assert = require("node:assert/strict");
     );
     assert.equal(data.measurements[0].lot, "EXE-01");
     assert.equal(data.measurements[0].temperature, 23);
+    // Exercise the actual desktop button; window.prompt is unsupported in Electron.
+    await page
+      .getByRole("button", { name: "Lotes e historial", exact: true })
+      .click();
+    await page.getByRole("button", { name: "Anular", exact: true }).click();
+    let actionDialog = page.getByRole("dialog", {
+      name: "Anular medición",
+      exact: true,
+    });
+    await expect(actionDialog).toBeVisible();
+    await expect(
+      actionDialog.getByRole("button", { name: "Confirmar anulación" }),
+    ).toBeDisabled();
+    await actionDialog.getByLabel("Motivo de la anulación *").fill("  ");
+    await expect(
+      actionDialog.getByRole("button", { name: "Confirmar anulación" }),
+    ).toBeDisabled();
+    await actionDialog
+      .getByLabel("Motivo de la anulación *")
+      .fill("Se cancela esta operación");
+    await actionDialog
+      .getByRole("button", { name: "Cancelar", exact: true })
+      .click();
+    await expect(page.locator("tbody tr")).toHaveCount(1);
+    assert.equal(
+      await page.evaluate(
+        () =>
+          JSON.parse(localStorage.getItem("qmonitor-real")).measurements[0]
+            .voided,
+      ),
+      false,
+    );
+    await page.getByRole("button", { name: "Anular", exact: true }).click();
+    actionDialog = page.getByRole("dialog", {
+      name: "Anular medición",
+      exact: true,
+    });
+    await actionDialog.getByLabel("Responsable *").fill("Responsable QA");
+    await actionDialog
+      .getByLabel("Motivo de la anulación *")
+      .fill("Error de transcripción confirmado");
+    await actionDialog
+      .getByRole("button", { name: "Confirmar anulación", exact: true })
+      .click();
+    await expect(actionDialog).not.toBeVisible();
+    await expect(page.getByRole("status")).toContainText("anulada");
+    await expect(page.locator("tbody tr")).toHaveCount(0);
+    let record = await page.evaluate(
+      () => JSON.parse(localStorage.getItem("qmonitor-real")).measurements[0],
+    );
+    assert.equal(record.voided, true);
+    assert.equal(record.ph, 7);
+    assert.equal(record.audit.at(-1).actor, "Responsable QA");
+    assert.equal(
+      record.audit.at(-1).reason,
+      "Error de transcripción confirmado",
+    );
+    await app.close();
+    app = await electron.launch(options);
+    page = await app.firstWindow();
+    page.on("pageerror", (error) => errors.push(error.message));
+    await expect(page.getByText("Esperando primera lectura")).toHaveCount(3);
+    await page
+      .getByRole("button", { name: "Lotes e historial", exact: true })
+      .click();
+    await expect(page.locator("tbody tr")).toHaveCount(0);
+    await page
+      .getByRole("button", { name: "Configuración", exact: true })
+      .click();
+    await expect(
+      page.getByRole("row", {
+        name: /Responsable QA.*Anulación.*Error de transcripción confirmado/,
+      }),
+    ).toBeVisible();
+    // The other former prompt (review responsibility) also works in a desktop dialog.
+    await page
+      .getByRole("button", { name: "Dashboard general", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Explorar demo", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Lotes e historial", exact: true })
+      .click();
+    await page
+      .getByRole("combobox", { name: "Estado", exact: true })
+      .selectOption("Pendiente de revisión");
+    const pending = await page.locator("tbody tr").count();
+    await page.locator("tbody .link").first().click();
+    await page
+      .getByRole("button", { name: "Documentar revisión", exact: true })
+      .click();
+    const reviewDialog = page.getByRole("dialog", {
+      name: "Documentar revisión",
+      exact: true,
+    });
+    await expect(
+      reviewDialog.getByRole("button", { name: "Confirmar revisión" }),
+    ).toBeDisabled();
+    await reviewDialog.getByLabel("Responsable *").fill("Revisor QA");
+    await reviewDialog
+      .getByLabel("Notas de revisión (opcional)")
+      .fill("Lecturas y límites revisados");
+    await reviewDialog
+      .getByRole("button", { name: "Confirmar revisión", exact: true })
+      .click();
+    await expect(page.getByRole("status")).toContainText("Revisión");
+    await expect(page.locator("tbody tr")).toHaveCount(pending - 1);
     const networkResult = await app.evaluate(({ BrowserWindow }) => {
       return BrowserWindow.getAllWindows()[0].webContents.executeJavaScript(
         "fetch('https://example.com').catch(() => 'blocked')",
@@ -100,7 +214,7 @@ const assert = require("node:assert/strict");
     assert.equal(networkResult, "blocked");
     assert.deepEqual(errors, []);
     console.log(
-      "Escritorio Electron: ventana propia, aislamiento, captura, persistencia tras cerrar/reabrir, CSV, Excel y respaldo JSON verificados.",
+      "Escritorio Electron: ventana propia, aislamiento, captura, persistencia tras cerrar/reabrir, CSV, Excel, respaldo JSON, anulación persistente con motivo/cancelación y revisión verificados.",
     );
   } finally {
     if (app) await app.close().catch(() => {});

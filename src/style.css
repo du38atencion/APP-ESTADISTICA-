@@ -1272,3 +1272,77 @@ pre {
 .mini-grid {
   grid-auto-rows: minmax(90px, auto);
 }
+.measurement-action-dialog {
+  border: 1px solid #dfe7ed;
+  border-radius: 12px;
+  box-shadow: 0 24px 100px #102c4240;
+  padding: 28px;
+  width: min(510px, calc(100% - 30px));
+  max-height: calc(100dvh - 40px);
+  overflow: auto;
+  color: #183348;
+  background: white;
+}
+.measurement-action-dialog::backdrop {
+  background: #102c4280;
+}
+.measurement-action-dialog .section-heading {
+  margin-bottom: 18px;
+}
+.measurement-action-dialog h2 {
+  font-size: 20px;
+}
+.measurement-action-dialog p {
+  font-size: 12px;
+  line-height: 1.7;
+}
+.measurement-action-dialog label {
+  margin-top: 18px;
+}
+.measurement-action-dialog textarea {
+  min-height: 100px;
+}
+.action-dialog-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+}
+.action-record {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #f5f8fa;
+  border: 1px solid #e3ebf1;
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin: 18px 0;
+}
+.action-record strong {
+  font-size: 12px;
+}
+.action-record span {
+  color: #738a9b;
+  font-size: 11px;
+}
+.action-dialog-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid #e5edf2;
+  padding-top: 20px;
+  margin-top: 22px;
+}
+button.destructive {
+  background: #b9534b;
+  border-color: #b9534b;
+  color: white;
+}
+button.destructive:hover {
+  background: #a6443d;
+}
+button.destructive:disabled {
+  background: #c38d87;
+  opacity: 0.65;
+}

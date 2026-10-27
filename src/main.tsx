@@ -1,3 +1,7 @@
+import {
+  MeasurementActionDialog,
+  type MeasurementAction,
+} from "./MeasurementActionDialog";
 import { ControlChart, Repeatability } from "./AdvancedCharts";
 import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -299,6 +303,7 @@ function App() {
     [sort, setSort] = useState("date"),
     [ascending, setAscending] = useState(false),
     [pagination, setPagination] = useState(0);
+  const [action, setAction] = useState<MeasurementAction | null>(null);
   const [selectedLots, setSelectedLots] = useState<string[]>([]),
     [chart, setChart] = useState("Histograma"),
     [axis, setAxis] = useState<Variable>("temperature"),
@@ -769,36 +774,8 @@ function App() {
                     <button
                       className="text-button danger"
                       onClick={() => {
-                        const reason = prompt(
-                          "Motivo obligatorio de anulación (se conserva el historial):",
-                        );
-                        if (
-                          !reason?.trim() ||
-                          !confirm(
-                            "¿Anular esta medición? Se excluirá de los análisis.",
-                          )
-                        )
-                          return;
-                        save({
-                          ...s,
-                          measurements: s.measurements.map((r) =>
-                            r.id === m.id
-                              ? {
-                                  ...r,
-                                  voided: true,
-                                  audit: [
-                                    ...r.audit,
-                                    {
-                                      at: new Date().toISOString(),
-                                      actor: m.operator,
-                                      action: "Anulación",
-                                      reason,
-                                    },
-                                  ],
-                                }
-                              : r,
-                          ),
-                        });
+                        setError("");
+                        setAction({ kind: "void", record: m });
                       }}
                     >
                       Anular
@@ -2903,7 +2880,7 @@ function App() {
             <span>
               {s.name} <i> / </i> Industrial Quality Intelligence
             </span>
-            <span>Registro manual · Evidencia trazable · v1.0</span>
+            <span>Registro manual · Evidencia trazable · v1.0.1</span>
           </footer>
         </div>
       </main>
@@ -2949,29 +2926,8 @@ function App() {
               <button
                 className="primary"
                 onClick={() => {
-                  const actor = prompt("Nombre del responsable de revisión:");
-                  if (!actor?.trim()) return;
-                  save({
-                    ...s,
-                    measurements: s.measurements.map((m) =>
-                      m.id === detail.id
-                        ? {
-                            ...m,
-                            reviewed: true,
-                            audit: [
-                              ...m.audit,
-                              {
-                                at: new Date().toISOString(),
-                                actor,
-                                action: "Revisión",
-                                reason:
-                                  "Revisión documentada de lecturas y criterios",
-                              },
-                            ],
-                          }
-                        : m,
-                    ),
-                  });
+                  setError("");
+                  setAction({ kind: "review", record: detail });
                   setDetail(null);
                 }}
               >
@@ -2980,6 +2936,63 @@ function App() {
             )}
           </section>
         </div>
+      )}
+      {action && (
+        <MeasurementActionDialog
+          key={action.kind + action.record.id}
+          action={action}
+          error={error}
+          onCancel={() => setAction(null)}
+          onConfirm={(actor, reason) => {
+            const record = s.measurements.find(
+              (m) => m.id === action.record.id,
+            );
+            if (!record || record.voided) {
+              setError(
+                "La medición ya no está disponible para esta operación.",
+              );
+              return false;
+            }
+            const voiding = action.kind === "void";
+            const updated: Measurement = {
+              ...record,
+              ...(voiding ? { voided: true } : { reviewed: true }),
+              audit: [
+                ...record.audit,
+                {
+                  at: new Date().toISOString(),
+                  actor,
+                  action: voiding ? "Anulación" : "Revisión",
+                  reason:
+                    reason || "Revisión documentada de lecturas y criterios",
+                },
+              ],
+            };
+            if (
+              !save({
+                ...s,
+                measurements: s.measurements.map((m) =>
+                  m.id === record.id ? updated : m,
+                ),
+              })
+            )
+              return false;
+            if (voiding)
+              setPagination(
+                Math.min(
+                  pagination,
+                  Math.max(0, Math.ceil((rows.length - 1) / 10) - 1),
+                ),
+              );
+            setNotice(
+              voiding
+                ? `Medición ${record.id} anulada. Se excluyó de los análisis y se conservó la trazabilidad.`
+                : `Revisión de ${record.id} guardada.`,
+            );
+            setAction(null);
+            return true;
+          }}
+        />
       )}
       {["products", "operators", "instruments", "stages", "methods"].map(
         (k) => (
