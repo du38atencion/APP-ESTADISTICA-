@@ -1,0 +1,74 @@
+name: Aplicación Windows
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "electron/**"
+      - "build/**"
+      - "scripts/**"
+      - "package*.json"
+      - "*config*"
+      - "electron-builder.yml"
+      - "index.html"
+      - ".github/workflows/windows.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: q-monitor-windows
+  cancel-in-progress: false
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - name: Instalar dependencias del proyecto
+        run: npm ci
+      - name: Instalar Electron para las pruebas de escritorio
+        run: node node_modules/electron/install.js
+      - name: Verificar cálculos
+        run: npm test
+      - name: Construir instalador Windows x64
+        run: npm run build:windows
+      - name: Verificar aplicación de escritorio
+        run: npm run test:desktop
+      - name: Preparar huella de integridad
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem release/Q-MONITOR-*.exe
+          if ($files.Count -ne 2) { throw 'Se esperaban un instalador y una aplicación portátil.' }
+          $files | ForEach-Object { "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower())  $($_.Name)" } | Set-Content release/SHA256SUMS.txt
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          "APP_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Q-MONITOR-Windows-x64
+          path: |
+            release/Q-MONITOR-*.exe
+            release/SHA256SUMS.txt
+          if-no-files-found: error
+      - name: Publicar instalador descargable
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "v$env:APP_VERSION"
+          gh release view $tag --repo $env:GITHUB_REPOSITORY *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag (Get-ChildItem release/Q-MONITOR-*.exe).FullName release/SHA256SUMS.txt --clobber --repo $env:GITHUB_REPOSITORY
+          } else {
+            gh release create $tag (Get-ChildItem release/Q-MONITOR-*.exe).FullName release/SHA256SUMS.txt --target $env:GITHUB_SHA --title "Q-MONITOR $env:APP_VERSION · Windows" --notes-file WINDOWS.md --repo $env:GITHUB_REPOSITORY
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'No se pudo publicar el instalador.' }
+          $ready = "desktop-$env:APP_VERSION-ready"
+          gh api --method POST "repos/$env:GITHUB_REPOSITORY/git/refs" -f "ref=refs/tags/$ready" -f "sha=$env:GITHUB_SHA"
+          if ($LASTEXITCODE -ne 0) {
+            gh api "repos/$env:GITHUB_REPOSITORY/git/ref/tags/$ready"
+            if ($LASTEXITCODE -ne 0) { throw 'No se pudo confirmar la publicación.' }
+          }

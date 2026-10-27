@@ -1,0 +1,38 @@
+appId: mx.qmonitor.industrial
+productName: Q-MONITOR
+copyright: Copyright © 2026 Q-MONITOR
+asar: true
+compression: maximum
+electronLanguages: [es, en-US]
+directories:
+  output: release
+  buildResources: build
+files:
+  - electron/main.cjs
+  - portable/index.html
+  - build/icon.png
+  - package.json
+  - "!node_modules{,/**}"
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  artifactName: Q-MONITOR-Instalador-${version}-${arch}.${ext}
+  signExecutable: false
+nsis:
+  oneClick: true
+  perMachine: false
+  allowElevation: false
+  runAfterFinish: true
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+  shortcutName: Q-MONITOR
+  uninstallDisplayName: Q-MONITOR
+  deleteAppDataOnUninstall: false
+  installerIcon: build/icon.ico
+  uninstallerIcon: build/icon.ico
+  installerLanguages: [es_ES]
+  language: "3082"
+portable:
+  artifactName: Q-MONITOR-${version}-Portatil-x64.${ext}
+  requestExecutionLevel: user
