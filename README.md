@@ -4,19 +4,21 @@ Aplicación de escritorio para **Windows**, en español, para captura **manual**
 
 ## Guía de uso en PDF
 
-[Descargar la guía práctica de Q-MONITOR](docs/Guia-de-uso-Q-MONITOR.pdf): 8 páginas con capturas, registro, anulación, límites, análisis, metrología, reportes y respaldos.
+[Descargar la guía práctica de Q-MONITOR](docs/Guia-de-uso-Q-MONITOR.pdf): 8 páginas con capturas, registro, anulación, límites, análisis, metrología, reportes y respaldos. El PDF corresponde a la interfaz anterior a 1.1.0; para R&R usa las instrucciones siguientes.
 
 ## Descargar y abrir con doble clic
 
-**[Descargar Q-MONITOR.exe para Windows](https://github.com/du38atencion/APP-ESTADISTICA-/releases/download/v1.0.1/Q-MONITOR-1.0.1-Portatil-x64.exe)**
+**Nueva versión: `Q-MONITOR-1.1.0-Portatil-x64.exe`** (carpeta `release/` al compilar).
+
+Las versiones publicadas están en [Releases](https://github.com/du38atencion/APP-ESTADISTICA-/releases).
 
 Guarda el archivo y ábrelo. No necesitas descargar el código, instalar Node.js ni abrir una terminal. Es el ejecutable portátil completo para Windows 10/11 x64. [Ayuda de uso](WINDOWS.md). La publicación incluye la huella SHA-256 del ejecutable.
 
-La versión 1.0.1 corrige los diálogos de anulación y revisión en la aplicación de escritorio. Cierra la versión anterior antes de abrir la nueva; el perfil y las mediciones se conservan. [Cambios](CHANGELOG.md).
+La versión 1.1.0 incorpora estudios R&R cruzados por ANOVA y retira Simulación de procesos y Evaluación económica. Cierra la versión anterior antes de abrir la nueva; el perfil y las mediciones se conservan. [Cambios](CHANGELOG.md).
 
 ## Aplicación de escritorio Windows (.exe)
 
-La entrega principal para Windows es **Q-MONITOR-Instalador-1.0.1-x64.exe**. Instala la aplicación, crea un acceso directo y abre una ventana propia, sin navegador externo, Node.js ni terminal para el usuario. Descarga el instalador en la sección **Releases** del repositorio. [Instrucciones para Windows](WINDOWS.md).
+La entrega portátil de esta actualización es **Q-MONITOR-1.1.0-Portatil-x64.exe**. La variante **Q-MONITOR-Instalador-1.1.0-x64.exe** se puede generar en Windows con el flujo de GitHub Actions: instala la aplicación y crea accesos directos. [Instrucciones para Windows](WINDOWS.md).
 
 Los datos de escritorio quedan en **%APPDATA%\Q-MONITOR**, separados de la versión web; exporta respaldos JSON desde Reportes. No se necesita conexión a Internet para usarlo.
 
@@ -58,9 +60,7 @@ El directorio `dist/` puede desplegarse en alojamiento estático HTTPS. Mantén 
 5. **Análisis estadístico:** resúmenes separados por producto, lote y tipo de humedad; tendencias, histogramas, dispersión con ejes seleccionables y cajas. I-MR exige ≥20 observaciones por grupo y confirmación explícita del muestreo apropiado.
 6. **Validación metrológica:** pares prototipo/referencia, muestra, sesión, instrumento, método, condiciones, repetición y criterio documentado. Filtra variable, sesión, instrumento y tipo de humedad. Incluye identidad y=x, diferencias, distribución y repetibilidad agrupada.
 7. **Alertas:** desviaciones frente a la copia del criterio aplicada al capturar. Registra responsable, estado de atención, investigación, disposición y acción correctiva sin cambiar el resultado medido.
-8. **Simulación:** compara minutos de inspección y costos actuales/propuestos. Identifica periodo, estimación u observación y fuente. Los supuestos quedan guardados.
-9. **Evaluación económica:** inversión, costos mensuales, beneficio bruto, contribución por lote, tasa y horizonte; compara tres escenarios con factores introducidos por el usuario.
-10. **Reportes:** ocho tipos de informe, filtros de mediciones, CSV, Excel y PDF mediante impresión del navegador; respaldo completo y restauración. Los informes metrológicos usan la selección de su módulo.
+8. **Reportes:** seis tipos de informe, filtros de mediciones, CSV, Excel y PDF mediante impresión del navegador; respaldo completo y restauración. Los informes metrológicos usan la selección de su módulo.
 
 Los estados son: borrador, no evaluable, pendiente de revisión, conforme, fuera de especificación y anulado. Una medición completa con todos los criterios y dentro de límites queda pendiente hasta documentar su revisión desde el detalle. Si faltan criterios no se declara conforme. Las alertas no liberan ni rechazan productos.
 
@@ -72,6 +72,16 @@ En **Reportes → Descargar respaldo completo**, descarga JSON con todos los reg
 
 Los errores de almacenamiento se muestran y no se confirman como guardados. No hay respaldo automático externo, cifrado, control de acceso ni garantía contra modificaciones desde las herramientas del navegador. No abras el mismo espacio en varias pestañas para editar simultáneamente: esta versión es local y de un solo operador.
 
+## R&R cruzado por ANOVA
+
+En **Análisis estadístico → R&R por ANOVA**, crea un estudio con nombre del sistema, fecha, responsable, característica y unidad. La tolerancia opcional es la amplitud **LSE − LIE**, no un límite aislado. Captura **Parte, Operador, Repetición y Medición** o pega desde Excel esas cuatro columnas (tabuladores o punto y coma; punto o coma decimal). No se toman mediciones históricas como réplicas automáticamente: la identificación experimental debe ser explícita.
+
+Todos los operadores miden las mismas partes. El cálculo requiere al menos 2 partes, 2 operadores y de 2 a 10 repeticiones por combinación, numeradas desde 1; se recomiendan **10 partes × 3 operadores × 2 repeticiones = 60 lecturas**. No admite duplicados ni diseños desbalanceados. Cada estudio representa una característica y una unidad; no mezcles instrumentos, unidades ni tipos de humedad. Aleatoriza el orden de medición y usa partes representativas.
+
+Al guardar, importar o corregir lecturas se recalculan las tablas y las seis gráficas. Se muestran ANOVA con interacción y, si p de interacción ≥ 0.05, el modelo final con interacción agrupada en el error. Los componentes negativos se estiman como cero. Incluye repetibilidad, reproducibilidad, interacción, parte a parte, % contribución, % variación de estudio (6s), % tolerancia y ndc. Los límites X̄–R usan A₂, D₃ y D₄ según el número de repeticiones. Criterio orientativo: ≤10 % aceptable, >10–30 % marginal, >30 % inaceptable, aplicado a % variación de estudio de R&R.
+
+**Exportar lecturas R&R (CSV)** descarga las lecturas del estudio. **Imprimir R&R / PDF** imprime el resumen, las seis gráficas y tablas ANOVA. El respaldo JSON de Reportes también incluye los estudios R&R. Los respaldos anteriores de la versión 1 siguen siendo compatibles; se conservan las mediciones, reglas, auditoría y datos legados de los módulos retirados, aunque estos ya no se muestran.
+
 ## Métodos de cálculo
 
 - Solo registros completos, no borradores y no anulados alimentan los análisis. Un campo vacío sigue siendo `null`, nunca cero. Los filtros conservan la relación producto/lote/fecha.
@@ -81,8 +91,6 @@ Los errores de almacenamiento se muestran y no se confirman como guardados. No h
 - Cajas: Q1, mediana y Q3 por interpolación lineal; bigotes en mínimo y máximo, sin clasificación de atípicos de Tukey. Histogramas: número de intervalos aproximado a √n, de anchura uniforme.
 - I-MR exploratorio: media ±2.66 MR̄; rangos móviles de pares consecutivos, límites 0 y 3.267 MR̄. Los límites estadísticos no son límites de aceptación. No se detectan automáticamente todas las reglas de rachas ni se prueba independencia o estabilidad.
 - Metrología: diferencia = prototipo − referencia; absoluto = |d|; relativo = 100|d|/|referencia| (se omite para pH y |referencia|<10⁻⁸). Sesgo = media(d), MAE = media(|d|), RMSE = √media(d²). Repetibilidad: s de lecturas del prototipo agrupadas por misma sesión, muestra, referencia, instrumento, método y condiciones declaradas. La incertidumbre no se equipara al sesgo ni se calcula automáticamente.
-- Simulación: tiempo actual = muestra + medición + registro + transcripción + revisión; propuesto = muestra + medición + registro en aplicación + revisión. Se multiplica por inspecciones/lote y lotes/periodo. Costos = horas × tarifa; capacidad teórica = 60/minutos por inspección. Sin paralelismo ni tiempos muertos.
-- Economía: suma de inversión y costos mensuales, costo anual = 12×mensual. Flujo neto mensual = beneficio bruto − costo mensual. Recuperación simple = inversión/flujo positivo. Equilibrio operativo = costo mensual/contribución por lote positiva. VPN = −inversión + Σ flujo anual/(1+tasa)^año; horizonte entero hasta 50 años. Sin impuestos, inflación, financiación ni valor residual. Si faltan datos no se genera evaluación. Los factores conservador/base/optimista deben ingresarse explícitamente.
 
 ## Verificación
 
@@ -103,14 +111,16 @@ Prototipo académico local funcional, no sistema validado para liberación regul
 
 Los criterios de metrología se documentan con cada par: un procedimiento experimental externo debe asegurar que se establecieron antes del ensayo. Esta versión no ofrece bloqueo de un protocolo prerregistrado ni presupuesto de incertidumbre. Las conclusiones describen datos, no causalidad.
 
-PDF usa el diálogo de impresión; gráficos SVG requieren un navegador moderno y la paginación depende de sus opciones. CSV/Excel exportan lecturas o pares metrológicos; los indicadores económicos y estadísticos completos se incluyen en el informe imprimible. Los reportes de simulación y economía muestran además los supuestos y resultados del modelo. No hay selección individual de columnas exportadas. La frecuencia de captura se guarda como referencia, sin notificaciones automáticas.
+PDF usa el diálogo de impresión; gráficos SVG requieren un navegador moderno y la paginación depende de sus opciones. CSV/Excel exportan lecturas o pares metrológicos; el informe R&R tiene su propio CSV de lecturas y salida de impresión/PDF en Análisis estadístico. No hay selección individual de columnas exportadas. La frecuencia de captura se guarda como referencia, sin notificaciones automáticas.
 
 Futuras mejoras: backend con base de datos y migraciones, autenticación y permisos, bitácora inmutable, copias automáticas, validación de protocolos metrológicos, pruebas con operadores reales e importación desde una API de instrumentos. Una conexión física futura debe conservar el dato original, identificador de instrumento, unidad, instante, método y origen de cada lectura, y tratar los fallos de comunicación sin crear lecturas ficticias.
 
 ## Estructura
 
+- `src/rr.ts`: ANOVA cruzado, componentes de varianza y límites X̄–R.
+- `src/RrAnalysis.tsx`, `src/RrReport.tsx`: estudios R&R, captura, gráficas y salida imprimible.
 - `src/domain.ts`: modelos, validación, cálculos y exportación tabular.
-- `src/main.tsx`: navegación y flujos de los diez módulos.
+- `src/main.tsx`: navegación y flujos de los ocho módulos.
 - `src/AdvancedCharts.tsx`: control estadístico y repetibilidad.
 - `src/style.css`: diseño adaptable e impresión.
 - `src/domain.test.ts`, `e2e/app.spec.ts`: pruebas de lógica y navegador.

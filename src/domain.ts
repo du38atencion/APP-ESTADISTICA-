@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { rrStudySchema, validateRrReadings, type RrStudy } from "./rr";
 export const variables = ["ph", "temperature", "humidity"] as const;
 export type Variable = (typeof variables)[number];
 export const labels: Record<Variable, string> = {
@@ -80,6 +81,8 @@ export type State = {
   rules: Rule[];
   measurements: Measurement[];
   trials: Trial[];
+  rrStudies?: RrStudy[];
+  // Legacy fields retained only to preserve existing backups.
   simulation: Record<string, string>;
   economy: Record<string, string>;
 };
@@ -234,106 +237,6 @@ export function exportRows(rows: Measurement[]) {
     Estado: status(m),
     Observaciones: m.notes,
   }));
-}
-export function simulation(s: Record<string, string>) {
-  const n = (k: string) => number(s[k] ?? "");
-  const keys = [
-    "lots",
-    "inspections",
-    "sample",
-    "measure",
-    "record",
-    "transcribe",
-    "review",
-    "app",
-    "hourly",
-  ];
-  if (keys.some((k) => n(k) === null || n(k)! < 0)) return null;
-  const old =
-      n("sample")! +
-      n("measure")! +
-      n("record")! +
-      n("transcribe")! +
-      n("review")!,
-    next = n("sample")! + n("measure")! + n("app")! + n("review")!,
-    count = n("lots")! * n("inspections")!;
-  return {
-    old,
-    next,
-    oldLot: old * n("inspections")!,
-    nextLot: next * n("inspections")!,
-    oldPeriod: (old * count) / 60,
-    nextPeriod: (next * count) / 60,
-    saved: ((old - next) * count) / 60,
-    reduction: old ? ((old - next) / old) * 100 : null,
-    costOld: ((old * count) / 60) * n("hourly")!,
-    costNext: ((next * count) / 60) * n("hourly")!,
-    capacity: next ? 60 / next : null,
-  };
-}
-export const investmentKeys = [
-  "Sensores e instrumentos",
-  "Microcontrolador y electrónica",
-  "Materiales",
-  "Gabinete y montaje",
-  "Desarrollo de software",
-  "Instalación",
-  "Capacitación",
-  "Otros iniciales",
-];
-export const recurringKeys = [
-  "Calibración",
-  "Mantenimiento",
-  "Consumibles",
-  "Reposición",
-  "Personal",
-  "Infraestructura digital",
-  "Otros recurrentes",
-];
-export function economics(s: Record<string, string>) {
-  const keys = [
-    ...investmentKeys,
-    ...recurringKeys,
-    "Lotes mensuales",
-    "Mediciones mensuales",
-    "Beneficio bruto mensual",
-    "Tasa anual (%)",
-    "Horizonte (años)",
-    "Contribución por lote",
-  ];
-  if (
-    keys.some((k) => number(s[k] ?? "") === null || Number(s[k]) < 0) ||
-    !Number.isInteger(Number(s["Horizonte (años)"])) ||
-    Number(s["Horizonte (años)"]) > 50
-  )
-    return null;
-  const n = (k: string) => Number(s[k]),
-    investment = investmentKeys.reduce((a, k) => a + n(k), 0),
-    monthly = recurringKeys.reduce((a, k) => a + n(k), 0),
-    net = n("Beneficio bruto mensual") - monthly,
-    rate = n("Tasa anual (%)") / 100,
-    years = n("Horizonte (años)");
-  return {
-    investment,
-    monthly,
-    annual: monthly * 12,
-    perLot: n("Lotes mensuales") ? monthly / n("Lotes mensuales") : null,
-    perMeasurement: n("Mediciones mensuales")
-      ? monthly / n("Mediciones mensuales")
-      : null,
-    net,
-    payback: net > 0 ? investment / net : null,
-    breakeven:
-      n("Contribución por lote") > 0
-        ? monthly / n("Contribución por lote")
-        : null,
-    npv:
-      -investment +
-      Array.from(
-        { length: years },
-        (_, i) => (net * 12) / (1 + rate) ** (i + 1),
-      ).reduce((a, b) => a + b, 0),
-  };
 }
 export function demo(): State {
   const s = initial();
@@ -502,6 +405,7 @@ const stateSchema = z.object({
   rules: z.array(ruleSchema),
   measurements: z.array(measurementSchema),
   trials: z.array(trialSchema),
+  rrStudies: z.array(rrStudySchema).optional(),
   simulation: z.record(z.string(), z.string()),
   economy: z.record(z.string(), z.string()),
 });
@@ -509,6 +413,16 @@ export function validBackup(x: unknown): x is State {
   const parsed = stateSchema.safeParse(x);
   if (!parsed.success) return false;
   const s = parsed.data;
+  try {
+    for (const study of s.rrStudies ?? []) validateRrReadings(study.readings);
+    if (
+      new Set((s.rrStudies ?? []).map((t) => t.id)).size !==
+      (s.rrStudies ?? []).length
+    )
+      return false;
+  } catch {
+    return false;
+  }
   return (
     new Set(s.measurements.map((m) => m.id)).size === s.measurements.length &&
     new Set(s.trials.map((t) => t.id)).size === s.trials.length

@@ -4,17 +4,19 @@ Aplicación de escritorio con ventana propia. No abre Chrome ni Edge y no necesi
 
 ## Abrir directamente sin instalar
 
-Descarga **[Q-MONITOR.exe](https://github.com/du38atencion/APP-ESTADISTICA-/releases/download/v1.0.1/Q-MONITOR-1.0.1-Portatil-x64.exe)** y ábrelo con doble clic. También está publicado en la sección **Releases**, con un instalador opcional. Es una aplicación de escritorio autocontenida, no un HTML. En el primer inicio puede tardar unos segundos en extraer sus componentes; no instala Node ni abre terminales. Guarda los datos en el mismo perfil local de Q-MONITOR.
+Descarga **Q-MONITOR-1.1.0-Portatil-x64.exe** y ábrelo con doble clic. Las versiones publicadas están en [Releases](https://github.com/du38atencion/APP-ESTADISTICA-/releases); el nuevo binario generado se entrega desde `release/`. Es una aplicación de escritorio autocontenida, no un HTML. En el primer inicio puede tardar unos segundos en extraer sus componentes; no instala Node ni abre terminales. Guarda los datos en el mismo perfil local de Q-MONITOR.
 
-## Actualizar desde la versión 1.0.0
+## Actualizar desde las versiones 1.0.x
 
-Cierra la aplicación anterior con **Archivo → Salir** antes de abrir la versión 1.0.1. No necesitas desinstalar ni borrar datos: se mantiene el mismo perfil local. Como precaución, puedes descargar un respaldo JSON desde Reportes antes de actualizar.
+Cierra la aplicación anterior con **Archivo → Salir** antes de abrir la versión 1.1.0. No necesitas desinstalar ni borrar datos: se mantiene el mismo perfil local. Como precaución, puedes descargar un respaldo JSON desde Reportes antes de actualizar.
 
 Para anular: **Lotes e historial → Anular**, completa responsable y motivo y pulsa **Confirmar anulación**. Cancelar o cerrar el diálogo no cambia el registro. Se excluye de los análisis pero permanece en la trazabilidad. También se corrigió el diálogo de Documentar revisión.
 
+La versión 1.1.0 retira Simulación de procesos y Evaluación económica y añade **Análisis estadístico → R&R por ANOVA**. Crea un estudio, define característica/unidad y registra parte, operador, repetición y lectura. Puedes pegar cuatro columnas desde Excel. Las tablas y gráficas se actualizan al guardar; los estudios se incluyen en el respaldo JSON. Las lecturas históricas permanecen intactas.
+
 ## Descargar e instalar
 
-1. En **Releases**, descarga **Q-MONITOR-Instalador-1.0.1-x64.exe**.
+1. Para la variante con instalación, compila en Windows o usa el flujo de GitHub Actions para generar **Q-MONITOR-Instalador-1.1.0-x64.exe**. El EXE portátil entregado se abre directamente sin instalación.
 2. Abre el archivo con doble clic. Se instala para tu usuario y crea un acceso directo **Q-MONITOR** en el escritorio y en Inicio.
 3. La aplicación se abre al finalizar. Después usa el acceso directo para iniciarla.
 
@@ -26,7 +28,7 @@ La aplicación funciona sin conexión a Internet. No conecta sensores ni sincron
 
 Los datos se guardan en el perfil local de la aplicación, bajo **%APPDATA%\Q-MONITOR**, separados del navegador. Las actualizaciones conservan ese perfil. Solo se permite una instancia abierta por usuario.
 
-Usa **Reportes → Descargar respaldo completo** para guardar un JSON en una carpeta que elijas mediante el diálogo de Windows. Incluye mediciones, borradores, anulados, reglas y trazabilidad. CSV y Excel no sustituyen ese respaldo completo. El menú **Ayuda → Carpeta de datos locales** permite localizar el perfil, pero para trasladar datos utiliza siempre el respaldo JSON y la restauración dentro de la aplicación.
+Usa **Reportes → Descargar respaldo completo** para guardar un JSON en una carpeta que elijas mediante el diálogo de Windows. Incluye mediciones, borradores, anulados, reglas, trazabilidad y estudios R&R. CSV y Excel no sustituyen ese respaldo completo. El menú **Ayuda → Carpeta de datos locales** permite localizar el perfil, pero para trasladar datos utiliza siempre el respaldo JSON y la restauración dentro de la aplicación.
 
 Antes de cambiar de PC, actualizar o desinstalar, descarga un respaldo. El desinstalador conserva los datos, pero no los protege de una limpieza manual del perfil de Windows ni de una falla del disco. No copies mediciones reales al repositorio de GitHub.
 

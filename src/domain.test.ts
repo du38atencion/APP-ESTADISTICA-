@@ -9,8 +9,6 @@ import {
   validateMeasurement,
   csv,
   exportRows,
-  simulation,
-  economics,
   initial,
   validBackup,
 } from "./domain";
@@ -166,25 +164,6 @@ describe("integridad y estadísticas", () => {
     expect(x.mae).toBe(1.5);
     expect(x.rmse).toBe(Math.sqrt(2.5));
   });
-  it("simulación requiere todos los supuestos", () => {
-    expect(simulation({})).toBeNull();
-    const x = simulation({
-      lots: "10",
-      inspections: "2",
-      sample: "1",
-      measure: "2",
-      record: "2",
-      transcribe: "1",
-      review: "1",
-      app: "1",
-      hourly: "60",
-    })!;
-    expect(x.oldLot).toBe(14);
-    expect(x.nextLot).toBe(10);
-    expect(x.costOld - x.costNext).toBeCloseTo(40);
-  });
-  it("economía no inventa resultados para datos faltantes", () =>
-    expect(economics({})).toBeNull());
   it("valida formato de respaldo", () => {
     expect(validBackup(initial())).toBe(true);
     expect(validBackup({ version: 1 })).toBe(false);

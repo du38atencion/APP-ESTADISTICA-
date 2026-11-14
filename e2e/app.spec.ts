@@ -83,7 +83,7 @@ test("borradores sin lecturas faltantes convertidas en cero", async ({
     .click();
   await expect(page.getByText("Aún no hay mediciones").first()).toBeVisible();
 });
-test("demostración separada, gráficas reales y navegación de diez módulos", async ({
+test("demostración separada, gráficas reales y navegación de ocho módulos", async ({
   page,
 }) => {
   const errors: string[] = [];
@@ -98,8 +98,6 @@ test("demostración separada, gráficas reales y navegación de diez módulos", 
     "Análisis estadístico",
     "Validación metrológica",
     "Alertas y desviaciones",
-    "Simulación de procesos",
-    "Evaluación económica",
     "Reportes y exportación",
     "Configuración",
   ]) {

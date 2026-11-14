@@ -9,6 +9,7 @@ const assert = require("node:assert/strict");
   const sandbox = fs.mkdtempSync(path.join(os.tmpdir(), "q-monitor-desktop-"));
   const errors = [];
   const options = {
+    executablePath: process.env.Q_MONITOR_ELECTRON_EXECUTABLE || undefined,
     args: [
       root,
       `--user-data-dir=${path.join(sandbox, "Q-MONITOR")}`,
@@ -212,9 +213,79 @@ const assert = require("node:assert/strict");
       );
     });
     assert.equal(networkResult, "blocked");
+    await page
+      .getByRole("button", { name: "Volver a datos reales", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Análisis estadístico", exact: true })
+      .click();
+    await page
+      .getByLabel("Nombre del sistema de medición")
+      .fill("R&R escritorio");
+    await page.getByLabel("Característica medida").fill("Diámetro");
+    await page.getByLabel("Unidad *", { exact: true }).fill("mm");
+    await page
+      .getByRole("button", { name: "Guardar estudio", exact: true })
+      .click();
+    await page
+      .getByText("Agregar varias lecturas desde Excel o una tabla", {
+        exact: true,
+      })
+      .click();
+    const rrRows = [1, 2, 3]
+      .flatMap((part) =>
+        ["Ana", "Luis"].flatMap((operator, index) =>
+          [1, 2].map((repetition) =>
+            [
+              part,
+              operator,
+              repetition,
+              10 + part + index * 0.1 + repetition * 0.05,
+            ].join(";"),
+          ),
+        ),
+      )
+      .join("\n");
+    await page.getByLabel("Tabla de lecturas R&R").fill(rrRows);
+    await page
+      .getByRole("button", { name: "Agregar tabla de lecturas", exact: true })
+      .click();
+    await expect(page.getByTestId("rr-count")).toHaveText("12");
+    await expect(page.locator(".rr-chart")).toHaveCount(6);
+    await page
+      .getByText("Datos guardados del estudio (12)", { exact: true })
+      .click();
+    const previous = await page.getByTestId("rr-verdict").innerText();
+    await page
+      .getByRole("button", {
+        name: "Corregir lectura 1 / Ana / 1",
+        exact: true,
+      })
+      .click();
+    await page.getByLabel("Medición (mm) *", { exact: true }).fill("11.8");
+    await page
+      .getByRole("button", { name: "Guardar corrección R&R", exact: true })
+      .click();
+    await expect(page.getByTestId("rr-verdict")).not.toHaveText(previous);
+    const savedRr = await page.getByTestId("rr-verdict").innerText();
+    await app.close();
+    app = await electron.launch(options);
+    page = await app.firstWindow();
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page
+      .getByRole("button", { name: "Análisis estadístico", exact: true })
+      .click();
+    await expect(page.getByTestId("rr-count")).toHaveText("12");
+    await expect(page.getByTestId("rr-verdict")).toHaveText(savedRr);
+    record = await page.evaluate(
+      () => JSON.parse(localStorage.getItem("qmonitor-real")).measurements[0],
+    );
+    assert.equal(record.lot, "EXE-01");
+    assert.equal(record.ph, 7);
+    assert.equal(record.voided, true);
     assert.deepEqual(errors, []);
     console.log(
-      "Escritorio Electron: ventana propia, aislamiento, captura, persistencia tras cerrar/reabrir, CSV, Excel, respaldo JSON, anulación persistente con motivo/cancelación y revisión verificados.",
+      "Escritorio Electron: ventana propia, aislamiento, captura, persistencia tras cerrar/reabrir, CSV, Excel, respaldo JSON, anulación persistente con motivo/cancelación y revisión, R&R ANOVA, actualización de gráficas y persistencia del estudio verificados.",
     );
   } finally {
     if (app) await app.close().catch(() => {});

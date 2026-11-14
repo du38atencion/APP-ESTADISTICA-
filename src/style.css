@@ -1346,3 +1346,196 @@ button.destructive:disabled {
   background: #c38d87;
   opacity: 0.65;
 }
+
+/* Crossed ANOVA measurement system study. */
+.rr-analysis {
+  margin-bottom: 24px;
+}
+.rr-analysis input,
+.rr-analysis select,
+.rr-analysis textarea {
+  min-width: 0;
+}
+.rr-analysis .filters {
+  padding: 0;
+  margin: 18px 0;
+  flex-wrap: wrap;
+}
+.rr-analysis label {
+  min-width: 0;
+}
+.rr-study-form,
+.rr-entry {
+  padding: 20px;
+  margin: 18px 0;
+  background: #f6f9fb;
+  border: 1px solid #dfe7ed;
+  border-radius: 8px;
+}
+.rr-study-form > label {
+  margin: 15px 0;
+}
+.rr-reading-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 0.7fr 1fr auto;
+  align-items: end;
+  gap: 12px;
+  margin: 20px 0;
+}
+.rr-entry details {
+  margin: 18px 0;
+}
+.rr-entry summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #176d9f;
+}
+.rr-entry details textarea {
+  margin: 12px 0;
+}
+.rr-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin: 24px 0;
+}
+.rr-summary p {
+  line-height: 1.7;
+}
+.rr-gauge-labels {
+  position: relative;
+  height: 28px;
+  font-size: 11px;
+  margin-top: 25px;
+}
+.rr-gauge-labels span {
+  position: absolute;
+}
+.rr-gauge-labels span:nth-child(1) {
+  left: 0;
+}
+.rr-gauge-labels span:nth-child(2) {
+  left: 10%;
+}
+.rr-gauge-labels span:nth-child(3) {
+  left: 30%;
+}
+.rr-gauge-labels span:nth-child(4) {
+  right: 0;
+}
+.rr-gauge {
+  height: 18px;
+  position: relative;
+  background: linear-gradient(
+    to right,
+    #299968 0% 10%,
+    #edbc4a 10% 30%,
+    #b9534b 30% 100%
+  );
+  border-radius: 3px;
+}
+.rr-marker {
+  position: absolute;
+  height: 34px;
+  width: 3px;
+  background: #183348;
+  top: -8px;
+  transform: translateX(-50%);
+  box-shadow: 0 0 0 2px white;
+}
+.rr-verdict {
+  font-size: 17px;
+}
+.rr-details {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px 16px;
+}
+.rr-details dt {
+  color: #5b7182;
+}
+.rr-details dd {
+  margin: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.rr-chart-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px 20px;
+}
+.rr-chart {
+  min-width: 0;
+  border: 1px solid #e0e8ed;
+  padding: 14px 10px;
+  border-radius: 8px;
+}
+.rr-chart h3 {
+  text-align: center;
+  font-size: 14px;
+}
+.rr-box-scroll {
+  overflow-x: auto;
+}
+.rr-box-scroll svg {
+  width: 100%;
+  min-width: 300px;
+  height: 280px;
+}
+.rr-report > h3 {
+  margin-top: 28px;
+}
+@media (max-width: 1150px) {
+  .rr-reading-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .rr-summary,
+  .rr-chart-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 540px) {
+  .rr-reading-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .rr-study-form,
+  .rr-entry {
+    padding: 12px;
+  }
+}
+@media print {
+  body:has(.rr-report)
+    main
+    .content
+    > :not(.rr-analysis):not(:has(.rr-analysis)) {
+    display: none !important;
+  }
+  body:has(.rr-report) .content > .panel:not(.rr-analysis) {
+    display: none !important;
+  }
+  .rr-analysis {
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+  }
+  .rr-analysis > .no-print {
+    display: none !important;
+  }
+  .rr-summary,
+  .rr-chart-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .rr-chart,
+  .rr-summary {
+    break-inside: avoid;
+  }
+  .rr-chart {
+    border: 0;
+  }
+  .rr-report .table-wrap {
+    overflow: visible;
+  }
+  .rr-report {
+    font-size: 10px;
+  }
+}

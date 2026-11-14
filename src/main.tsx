@@ -1,3 +1,4 @@
+import { RrAnalysis } from "./RrAnalysis";
 import {
   MeasurementActionDialog,
   type MeasurementAction,
@@ -14,8 +15,6 @@ import {
   ChartNoAxesCombined,
   ShieldCheck,
   TriangleAlert,
-  Workflow,
-  Wallet,
   FileDown,
   Settings,
   ArrowUpRight,
@@ -60,10 +59,6 @@ import {
   failures,
   exportRows,
   csv,
-  simulation,
-  economics,
-  investmentKeys,
-  recurringKeys,
   demo,
   validateMeasurement,
   validBackup,
@@ -78,8 +73,6 @@ const pages = [
   "Análisis estadístico",
   "Validación metrológica",
   "Alertas y desviaciones",
-  "Simulación de procesos",
-  "Evaluación económica",
   "Reportes y exportación",
   "Configuración",
 ];
@@ -90,8 +83,6 @@ const icons = [
   ChartNoAxesCombined,
   ShieldCheck,
   TriangleAlert,
-  Workflow,
-  Wallet,
   FileDown,
   Settings,
 ];
@@ -958,8 +949,6 @@ function App() {
                     "Transforma tus mediciones en evidencia.",
                     "Compara el prototipo con un método de referencia.",
                     "Identifica, investiga y documenta las desviaciones.",
-                    "Explora el impacto bajo supuestos explícitos.",
-                    "Evalúa costos y proyecciones con datos documentados.",
                     "Comparte evidencia con contexto y trazabilidad.",
                     "Define los criterios de tu espacio de calidad.",
                   ][page]
@@ -996,7 +985,7 @@ function App() {
               )}
             </div>
           </div>
-          {[0, 2, 3, 5, 8].includes(page) && FilterBar()}
+          {[0, 2, 3, 5, 6].includes(page) && FilterBar()}
           {page === 0 && (
             <>
               <div className="section-inline">
@@ -1187,7 +1176,7 @@ function App() {
                       : "Sin criterio de aceptación configurado. Define límites documentados para evaluar tus mediciones."}
                   </p>
                 </div>
-                <button onClick={() => go(9)}>
+                <button onClick={() => go(7)}>
                   Configurar criterios <ChevronRight size={16} />
                 </button>
               </div>
@@ -1269,6 +1258,11 @@ function App() {
           )}
           {page === 3 && (
             <>
+              <RrAnalysis
+                key={mode ? "demo" : "real"}
+                studies={s.rrStudies ?? []}
+                onSave={(rrStudies) => save({ ...s, rrStudies })}
+              />
               <section className="panel">
                 <div className="section-heading">
                   <div>
@@ -2037,300 +2031,6 @@ function App() {
             </section>
           )}
           {page === 6 && (
-            <section className="panel">
-              <div className="section-heading">
-                <div>
-                  <h2>Proceso actual vs. proceso propuesto</h2>
-                  <p>
-                    Minutos por inspección · periodo definido por el usuario ·
-                    costos en MXN
-                  </p>
-                </div>
-                <Workflow size={22} />
-              </div>
-              <div className="form-grid">
-                {Object.entries({
-                  lots: "Lotes por periodo",
-                  inspections: "Inspecciones por lote",
-                  sample: "Toma de muestra (min)",
-                  measure: "Medición (min)",
-                  record: "Registro manual actual (min)",
-                  transcribe: "Transcripción actual (min)",
-                  review: "Revisión (min)",
-                  app: "Registro con aplicación (min)",
-                  hourly: "Costo de personal (MXN/h)",
-                }).map(([k, l]) => (
-                  <Field
-                    key={k}
-                    label={l}
-                    type="number"
-                    min="0"
-                    step="any"
-                    value={s.simulation[k] ?? ""}
-                    onChange={(e) => {
-                      if (Number(e.target.value) < 0) return;
-                      save({
-                        ...s,
-                        simulation: { ...s.simulation, [k]: e.target.value },
-                      });
-                    }}
-                  />
-                ))}
-                <Field
-                  label="Periodo (ej. mes de octubre)"
-                  value={s.simulation.period || ""}
-                  onChange={(e) =>
-                    save({
-                      ...s,
-                      simulation: { ...s.simulation, period: e.target.value },
-                    })
-                  }
-                />
-                <label>
-                  Origen de los tiempos
-                  <select
-                    value={s.simulation.origin || "Estimaciones"}
-                    onChange={(e) =>
-                      save({
-                        ...s,
-                        simulation: { ...s.simulation, origin: e.target.value },
-                      })
-                    }
-                  >
-                    <option>Estimaciones</option>
-                    <option>Observación experimental documentada</option>
-                  </select>
-                </label>
-                <Field
-                  label="Fuente / evidencia"
-                  value={s.simulation.source || ""}
-                  onChange={(e) =>
-                    save({
-                      ...s,
-                      simulation: { ...s.simulation, source: e.target.value },
-                    })
-                  }
-                />
-              </div>
-              {simulation(s.simulation) ? (
-                (() => {
-                  const v = simulation(s.simulation)!;
-                  return (
-                    <>
-                      <div className="mini-grid">
-                        {[
-                          ["Actual por lote (min)", v.oldLot],
-                          ["Propuesto por lote (min)", v.nextLot],
-                          ["Diferencia por periodo (h)", v.saved],
-                          ["Reducción estimada (%)", v.reduction],
-                          ["Costo actual / periodo MXN", v.costOld],
-                          ["Costo propuesto / periodo MXN", v.costNext],
-                          ["Diferencia costos MXN", v.costOld - v.costNext],
-                          ["Capacidad teórica (inspecciones/h)", v.capacity],
-                        ].map(([k, n]) => (
-                          <div key={k}>
-                            <span>{k}</span>
-                            <strong>{fmt(n as number | null)}</strong>
-                          </div>
-                        ))}
-                      </div>
-                      <ResponsiveContainer width="100%" height={230}>
-                        <BarChart
-                          data={[
-                            { escenario: "Actual", horas: v.oldPeriod },
-                            { escenario: "Propuesto", horas: v.nextPeriod },
-                          ]}
-                        >
-                          <CartesianGrid vertical={false} />
-                          <XAxis dataKey="escenario" />
-                          <YAxis />
-                          <Tooltip />
-                          <Bar dataKey="horas" fill="#137dce" />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </>
-                  );
-                })()
-              ) : (
-                <Empty
-                  text="Completa los supuestos para comparar"
-                  detail="Los campos vacíos no se sustituyen por cero."
-                />
-              )}
-              <p className="footnote">
-                Modelo secuencial sin paralelismo ni tiempos muertos. Los
-                resultados son proyecciones bajo los supuestos ingresados; no
-                demuestran mejoras experimentales.
-              </p>
-            </section>
-          )}
-          {page === 7 && (
-            <section className="panel">
-              <div className="section-heading">
-                <div>
-                  <h2>Modelo económico</h2>
-                  <p>MXN · costos recurrentes mensuales · precios constantes</p>
-                </div>
-                <Wallet size={22} />
-              </div>
-              {[
-                ["Inversión inicial", investmentKeys],
-                ["Costos recurrentes mensuales", recurringKeys],
-                [
-                  "Supuestos de evaluación",
-                  [
-                    "Lotes mensuales",
-                    "Mediciones mensuales",
-                    "Beneficio bruto mensual",
-                    "Contribución por lote",
-                    "Tasa anual (%)",
-                    "Horizonte (años)",
-                  ],
-                ],
-              ].map(([title, keys]) => (
-                <div key={title as string}>
-                  <h3 className="form-title">{title as string}</h3>
-                  <div className="form-grid">
-                    {(keys as string[]).map((k) => (
-                      <Field
-                        key={k}
-                        label={k}
-                        type="number"
-                        min="0"
-                        max={k === "Horizonte (años)" ? 50 : undefined}
-                        step={k === "Horizonte (años)" ? "1" : "any"}
-                        value={s.economy[k] ?? ""}
-                        onChange={(e) => {
-                          if (
-                            Number(e.target.value) < 0 ||
-                            (k === "Horizonte (años)" &&
-                              (Number(e.target.value) > 50 ||
-                                !Number.isInteger(Number(e.target.value))))
-                          )
-                            return;
-                          save({
-                            ...s,
-                            economy: { ...s.economy, [k]: e.target.value },
-                          });
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ))}
-              <Field
-                label="Fuente y justificación de supuestos"
-                value={s.economy.source || ""}
-                onChange={(e) =>
-                  save({
-                    ...s,
-                    economy: { ...s.economy, source: e.target.value },
-                  })
-                }
-              />
-              {economics(s.economy) ? (
-                (() => {
-                  const v = economics(s.economy)!;
-                  return (
-                    <>
-                      <div className="mini-grid">
-                        {[
-                          ["Inversión inicial MXN", v.investment],
-                          ["Operación mensual MXN", v.monthly],
-                          ["Operación anual MXN", v.annual],
-                          ["Costo por lote MXN", v.perLot],
-                          ["Costo por medición MXN", v.perMeasurement],
-                          ["Ahorro neto mensual MXN", v.net],
-                          ["Recuperación (meses)", v.payback],
-                          ["Equilibrio (lotes/mes)", v.breakeven],
-                          ["VPN MXN", v.npv],
-                        ].map(([k, n]) => (
-                          <div key={k}>
-                            <span>{k}</span>
-                            <strong>{fmt(n as number | null)}</strong>
-                          </div>
-                        ))}
-                      </div>
-                      <h3>Escenarios de proyección</h3>
-                      <div className="table-wrap">
-                        <table>
-                          <thead>
-                            <tr>
-                              <th>Escenario</th>
-                              <th>Factor de beneficio bruto</th>
-                              <th>Flujo mensual neto MXN</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {["Conservador", "Base", "Optimista"].map(
-                              (name, i) => {
-                                const key = "factor" + i,
-                                  factor = number(s.economy[key] ?? "");
-                                return (
-                                  <tr key={name}>
-                                    <td>{name}</td>
-                                    <td>
-                                      <input
-                                        aria-label={"Factor " + name}
-                                        type="number"
-                                        min="0"
-                                        step="any"
-                                        value={s.economy[key] ?? ""}
-                                        onChange={(e) =>
-                                          save({
-                                            ...s,
-                                            economy: {
-                                              ...s.economy,
-                                              [key]: e.target.value,
-                                            },
-                                          })
-                                        }
-                                      />
-                                    </td>
-                                    <td>
-                                      {factor !== null
-                                        ? fmt(
-                                            Number(
-                                              s.economy[
-                                                "Beneficio bruto mensual"
-                                              ],
-                                            ) *
-                                              factor -
-                                              v.monthly,
-                                          )
-                                        : "Factor pendiente"}
-                                    </td>
-                                  </tr>
-                                );
-                              },
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-                      <h3>Flujo de efectivo anual · escenario base</h3>
-                      <p>
-                        Año 0: {fmt(-v.investment)} MXN. Años 1–
-                        {s.economy["Horizonte (años)"]}: {fmt(v.net * 12)} MXN
-                        por año.
-                      </p>
-                    </>
-                  );
-                })()
-              ) : (
-                <Empty
-                  text="Evaluación pendiente de datos"
-                  detail="Completa los costos y supuestos; introduce cero únicamente si corresponde."
-                />
-              )}
-              <p className="footnote">
-                VPN = −inversión + Σ flujo anual / (1+tasa)^año. Recuperación
-                simple sin descuento; no se alcanza con flujo neto ≤ 0.
-                Equilibrio operativo = costo mensual / contribución por lote.
-                Sin impuestos, inflación, valor residual ni financiación.
-              </p>
-            </section>
-          )}
-          {page === 8 && (
             <>
               <section className="panel no-print">
                 <div className="section-heading">
@@ -2355,8 +2055,6 @@ function App() {
                       "Validación metrológica",
                       "Desviaciones",
                       "Comparación de lotes",
-                      "Simulación de tiempos",
-                      "Evaluación económica",
                     ]}
                   />
                   <button
@@ -2465,18 +2163,6 @@ function App() {
                       </tbody>
                     </table>
                   </>
-                ) : report === "Simulación de tiempos" ? (
-                  <>
-                    <pre>{JSON.stringify(s.simulation, null, 2)}</pre>
-                    <pre>
-                      {JSON.stringify(simulation(s.simulation), null, 2)}
-                    </pre>
-                  </>
-                ) : report === "Evaluación económica" ? (
-                  <>
-                    <pre>{JSON.stringify(s.economy, null, 2)}</pre>
-                    <pre>{JSON.stringify(economics(s.economy), null, 2)}</pre>
-                  </>
                 ) : (
                   grouped.map(([g, ms]) => (
                     <div key={g}>
@@ -2501,8 +2187,7 @@ function App() {
                   muestral (n−1); cálculos solo sobre registros completos no
                   borrador. Error metrológico = prototipo − referencia. Las
                   alertas se basan en criterios guardados, no certifican
-                  cumplimiento normativo. Los resultados económicos y de
-                  simulación son proyecciones.
+                  cumplimiento normativo.
                 </p>
                 <p>{s.reportNotes}</p>
               </section>
@@ -2560,7 +2245,7 @@ function App() {
               </section>
             </>
           )}
-          {page === 9 && (
+          {page === 7 && (
             <>
               <section className="panel">
                 <h2>Identidad y catálogos</h2>
