@@ -1,0 +1,28 @@
+Q-MONITOR 1.2.0 — Windows x64
+
+Cierra la versión anterior y abre Q-MONITOR-1.2.0-Portatil-x64.exe.
+Se conserva el perfil %APPDATA%\Q-MONITOR, las mediciones y los respaldos.
+
+Para obtener gráficas y resultados:
+1. Pulsa Cargar datos.
+2. Selecciona Cargar archivo de valores.
+3. Abre CSV, TXT, TSV, Excel XLSX (primera hoja) o JSON.
+Las gráficas y estadísticas aparecen automáticamente. No se necesita
+crear un estudio ni rellenar parte, operador o repetición.
+
+Cada columna numérica se analiza por separado. Incluye tendencia,
+histograma, caja, media, mediana, desviación estándar, mínimo, máximo
+y rango; con al menos 20 valores estima límites exploratorios I-MR.
+Los archivos se guardan junto con el respaldo JSON y no reemplazan
+las mediciones anteriores. Datos analizados permite cambiar de columna.
+
+R&R por ANOVA no puede estimarse con solo valores sin identificación
+experimental. Si el archivo o un estudio guardado ya contiene parte,
+operador y repetición, se reconoce y calcula automáticamente cuando
+el diseño está completo. Nunca se inventan etiquetas o resultados R&R.
+
+Comprobaciones aprobadas: 27 pruebas unitarias, 16 de navegador y
+prueba de escritorio Electron/Linux, incluida carga de CSV y Excel,
+persistencia y actualización desde la versión 1.0.1.
+EXE compilado para Windows x64; no ejecutado en Windows nativo.
+SHA256SUMS-1.2.0.txt permite comprobar la integridad de la descarga.

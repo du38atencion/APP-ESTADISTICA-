@@ -1,8 +1,7 @@
 import { test, expect } from "@playwright/test";
 async function fillMeasurement(page: any, lot = "LOTE-01", draft = false) {
-  await page
-    .getByRole("button", { name: "Nueva medición", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Cargar datos", exact: true }).click();
+  await page.getByText("Captura manual opcional", { exact: true }).click();
   await page.getByLabel("Producto *", { exact: true }).fill("Producto real");
   await page.getByLabel("Número de lote *").fill(lot);
   await page.getByLabel("Operador *", { exact: true }).fill("Ana");
@@ -158,7 +157,7 @@ test("interfaz móvil sin desbordamiento y navegación funcional", async ({
     .getByRole("button", { name: "Registro de mediciones", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Nueva medición manual" }),
+    page.getByRole("heading", { name: "Cargar datos y obtener resultados" }),
   ).toBeVisible();
   expect(
     await page.evaluate(

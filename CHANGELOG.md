@@ -1,5 +1,14 @@
 # Cambios
 
+## 1.2.0
+
+- Sustituye los formularios manuales del estudio R&R por carga de CSV, TXT, TSV, Excel XLSX y JSON con análisis inmediato de cada columna numérica.
+- Muestra tendencia, histograma, caja, estadísticos y control individual exploratorio sin recapturar valores, parte, operador ni repetición.
+- Reutiliza automáticamente mediciones históricas y estudios guardados. Incluye los archivos cargados en el respaldo y mantiene el perfil de datos anterior.
+- Solo calcula R&R ANOVA si la identificación experimental ya está presente en el archivo o estudio guardado; no fabrica etiquetas para simular un estudio con valores sin identificar.
+- Mantiene la captura manual anterior como opción plegada, preservando historial, edición y auditoría.
+- Añade pruebas de carga, reconocimiento de columnas, actualización de gráficas, Excel, persistencia, respaldo y conservación de datos.
+
 ## 1.1.0
 
 - Retira Simulación de procesos, Evaluación económica y sus reportes de la interfaz.

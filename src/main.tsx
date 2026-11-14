@@ -1,4 +1,9 @@
-import { RrAnalysis } from "./RrAnalysis";
+import { AutomaticAnalysis, DataUpload } from "./AutomaticAnalysis";
+import {
+  seriesFromMeasurements,
+  seriesFromRrStudies,
+  type AnalysisDataset,
+} from "./analysis-data";
 import {
   MeasurementActionDialog,
   type MeasurementAction,
@@ -178,7 +183,7 @@ const Empty = ({
     <p>{detail}</p>
     {action && (
       <button className="primary" onClick={action}>
-        <Plus size={16} /> Registrar primera medición
+        <Plus size={16} /> Cargar primeras mediciones
       </button>
     )}
   </div>
@@ -317,6 +322,30 @@ function App() {
       return false;
     }
   }
+  function importDataset(dataset: AnalysisDataset) {
+    if (
+      !save({
+        ...s,
+        analysisDatasets: [dataset, ...(s.analysisDatasets ?? [])],
+      })
+    )
+      return false;
+    setNotice(
+      `Archivo cargado: ${dataset.name}. Gráficas y resultados actualizados.`,
+    );
+    setPage(3);
+    return true;
+  }
+  const automaticSeries = [
+    ...(s.analysisDatasets ?? []).flatMap((dataset) =>
+      dataset.series.map((series) => ({
+        ...series,
+        name: `${dataset.name} · ${series.name}`,
+      })),
+    ),
+    ...seriesFromMeasurements(filterRows(s.measurements, filters)),
+    ...seriesFromRrStudies(s.rrStudies ?? []),
+  ];
   function go(p: number) {
     setPage(p);
     setMenu(false);
@@ -980,7 +1009,7 @@ function App() {
                     go(1);
                   }}
                 >
-                  <Plus size={17} /> Nueva medición
+                  <Plus size={17} /> Cargar datos
                 </button>
               )}
             </div>
@@ -988,6 +1017,18 @@ function App() {
           {[0, 2, 3, 5, 6].includes(page) && FilterBar()}
           {page === 0 && (
             <>
+              {!!s.analysisDatasets?.length && (
+                <section className="panel">
+                  <h2>Archivos de valores cargados</h2>
+                  <p>
+                    {s.analysisDatasets.length} archivo(s) guardado(s). Último:{" "}
+                    {s.analysisDatasets[0].name}.
+                  </p>
+                  <button onClick={() => go(3)}>
+                    Ver gráficas y resultados
+                  </button>
+                </section>
+              )}
               <div className="section-inline">
                 <span className="section-kicker">RESUMEN DEL PROCESO</span>
                 <span className="muted">
@@ -1182,7 +1223,18 @@ function App() {
               </div>
             </>
           )}
-          {page === 1 && measurementForm()}
+          {page === 1 &&
+            (editing ? (
+              measurementForm()
+            ) : (
+              <>
+                <DataUpload onLoad={importDataset} />
+                <details className="manual-capture no-print">
+                  <summary>Captura manual opcional</summary>
+                  {measurementForm()}
+                </details>
+              </>
+            ))}
           {page === 2 && (
             <>
               <section className="panel">
@@ -1258,10 +1310,10 @@ function App() {
           )}
           {page === 3 && (
             <>
-              <RrAnalysis
+              <AutomaticAnalysis
                 key={mode ? "demo" : "real"}
-                studies={s.rrStudies ?? []}
-                onSave={(rrStudies) => save({ ...s, rrStudies })}
+                series={automaticSeries}
+                onUpload={importDataset}
               />
               <section className="panel">
                 <div className="section-heading">

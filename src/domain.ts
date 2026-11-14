@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { analysisDatasetSchema, type AnalysisDataset } from "./analysis-data";
 import { rrStudySchema, validateRrReadings, type RrStudy } from "./rr";
 export const variables = ["ph", "temperature", "humidity"] as const;
 export type Variable = (typeof variables)[number];
@@ -82,6 +83,7 @@ export type State = {
   measurements: Measurement[];
   trials: Trial[];
   rrStudies?: RrStudy[];
+  analysisDatasets?: AnalysisDataset[];
   // Legacy fields retained only to preserve existing backups.
   simulation: Record<string, string>;
   economy: Record<string, string>;
@@ -406,6 +408,7 @@ const stateSchema = z.object({
   measurements: z.array(measurementSchema),
   trials: z.array(trialSchema),
   rrStudies: z.array(rrStudySchema).optional(),
+  analysisDatasets: z.array(analysisDatasetSchema).optional(),
   simulation: z.record(z.string(), z.string()),
   economy: z.record(z.string(), z.string()),
 });

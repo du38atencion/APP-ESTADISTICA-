@@ -49,8 +49,15 @@ const assert = require("node:assert/strict");
     assert.equal(config.sandbox, true);
     assert.ok(config.data.startsWith(sandbox));
     await page
-      .getByRole("button", { name: "Nueva medición", exact: true })
+      .getByRole("button", {
+        name: /^(Nueva medición|Cargar datos)$/,
+        exact: true,
+      })
       .click();
+    if (
+      await page.getByText("Captura manual opcional", { exact: true }).count()
+    )
+      await page.getByText("Captura manual opcional", { exact: true }).click();
     for (const [name, value] of Object.entries({
       product: "Prueba escritorio",
       lot: "EXE-01",
@@ -219,55 +226,23 @@ const assert = require("node:assert/strict");
     await page
       .getByRole("button", { name: "Análisis estadístico", exact: true })
       .click();
+    const csvFile = path.join(sandbox, "valores.csv");
+    fs.writeFileSync(
+      csvFile,
+      "Medición\n" +
+        Array.from({ length: 24 }, (_, i) => 20 + i * 0.1).join("\n"),
+    );
     await page
-      .getByLabel("Nombre del sistema de medición")
-      .fill("R&R escritorio");
-    await page.getByLabel("Característica medida").fill("Diámetro");
-    await page.getByLabel("Unidad *", { exact: true }).fill("mm");
-    await page
-      .getByRole("button", { name: "Guardar estudio", exact: true })
-      .click();
-    await page
-      .getByText("Agregar varias lecturas desde Excel o una tabla", {
-        exact: true,
-      })
-      .click();
-    const rrRows = [1, 2, 3]
-      .flatMap((part) =>
-        ["Ana", "Luis"].flatMap((operator, index) =>
-          [1, 2].map((repetition) =>
-            [
-              part,
-              operator,
-              repetition,
-              10 + part + index * 0.1 + repetition * 0.05,
-            ].join(";"),
-          ),
-        ),
-      )
-      .join("\n");
-    await page.getByLabel("Tabla de lecturas R&R").fill(rrRows);
-    await page
-      .getByRole("button", { name: "Agregar tabla de lecturas", exact: true })
-      .click();
-    await expect(page.getByTestId("rr-count")).toHaveText("12");
-    await expect(page.locator(".rr-chart")).toHaveCount(6);
-    await page
-      .getByText("Datos guardados del estudio (12)", { exact: true })
-      .click();
-    const previous = await page.getByTestId("rr-verdict").innerText();
-    await page
-      .getByRole("button", {
-        name: "Corregir lectura 1 / Ana / 1",
-        exact: true,
-      })
-      .click();
-    await page.getByLabel("Medición (mm) *", { exact: true }).fill("11.8");
-    await page
-      .getByRole("button", { name: "Guardar corrección R&R", exact: true })
-      .click();
-    await expect(page.getByTestId("rr-verdict")).not.toHaveText(previous);
-    const savedRr = await page.getByTestId("rr-verdict").innerText();
+      .getByLabel("Cargar archivo de valores", { exact: true })
+      .setInputFiles(csvFile);
+    await expect(page.getByTestId("auto-stats")).toContainText("24");
+    await expect(
+      page.getByTestId("auto-charts").locator(".rr-chart"),
+    ).toHaveCount(4);
+    await expect(page.getByTestId("rr-unavailable")).toContainText(
+      "no estimable",
+    );
+    await expect(page.getByLabel("Parte *", { exact: true })).toHaveCount(0);
     await app.close();
     app = await electron.launch(options);
     page = await app.firstWindow();
@@ -275,8 +250,28 @@ const assert = require("node:assert/strict");
     await page
       .getByRole("button", { name: "Análisis estadístico", exact: true })
       .click();
-    await expect(page.getByTestId("rr-count")).toHaveText("12");
-    await expect(page.getByTestId("rr-verdict")).toHaveText(savedRr);
+    await expect(page.getByTestId("auto-stats")).toContainText("24");
+    await expect(
+      page.getByTestId("auto-charts").locator(".rr-chart"),
+    ).toHaveCount(4);
+    const { default: writeExcel } = await import("write-excel-file/node");
+    const xlsxFile = path.join(sandbox, "valores.xlsx");
+    await writeExcel([
+      [{ value: "Valor" }],
+      [{ value: 20, type: Number }],
+      [{ value: 22, type: Number }],
+      [{ value: 24, type: Number }],
+    ]).toFile(xlsxFile);
+    await page
+      .getByLabel("Cargar archivo de valores", { exact: true })
+      .setInputFiles(xlsxFile);
+    await expect(
+      page
+        .getByTestId("auto-stats")
+        .locator("div")
+        .filter({ has: page.getByText("Media", { exact: true }) })
+        .locator("strong"),
+    ).toHaveText("22");
     record = await page.evaluate(
       () => JSON.parse(localStorage.getItem("qmonitor-real")).measurements[0],
     );
@@ -285,7 +280,7 @@ const assert = require("node:assert/strict");
     assert.equal(record.voided, true);
     assert.deepEqual(errors, []);
     console.log(
-      "Escritorio Electron: ventana propia, aislamiento, captura, persistencia tras cerrar/reabrir, CSV, Excel, respaldo JSON, anulación persistente con motivo/cancelación y revisión, R&R ANOVA, actualización de gráficas y persistencia del estudio verificados.",
+      "Escritorio Electron: ventana propia, aislamiento, captura, persistencia tras cerrar/reabrir, CSV, Excel, respaldo JSON, anulación persistente con motivo/cancelación y revisión, carga de valores, gráficas automáticas sin recaptura y persistencia de los archivos verificados.",
     );
   } finally {
     if (app) await app.close().catch(() => {});

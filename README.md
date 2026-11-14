@@ -4,21 +4,21 @@ Aplicación de escritorio para **Windows**, en español, para captura **manual**
 
 ## Guía de uso en PDF
 
-[Descargar la guía práctica de Q-MONITOR](docs/Guia-de-uso-Q-MONITOR.pdf): 8 páginas con capturas, registro, anulación, límites, análisis, metrología, reportes y respaldos. El PDF corresponde a la interfaz anterior a 1.1.0; para R&R usa las instrucciones siguientes.
+[Descargar la guía práctica de Q-MONITOR](docs/Guia-de-uso-Q-MONITOR.pdf): 8 páginas con capturas, registro, anulación, límites, análisis, metrología, reportes y respaldos. El PDF corresponde a la interfaz anterior a 1.2.0; para R&R usa las instrucciones siguientes.
 
 ## Descargar y abrir con doble clic
 
-**Nueva versión: `Q-MONITOR-1.1.0-Portatil-x64.exe`** (carpeta `release/` al compilar).
+**[Descargar Q-MONITOR-1.2.0-Portatil-x64.exe](https://github.com/du38atencion/APP-ESTADISTICA-/raw/refs/heads/downloads/q-monitor-1.2.0/descargas/Q-MONITOR-1.2.0-Portatil-x64.exe)**. También se genera en `release/` al compilar.
 
 Las versiones publicadas están en [Releases](https://github.com/du38atencion/APP-ESTADISTICA-/releases).
 
 Guarda el archivo y ábrelo. No necesitas descargar el código, instalar Node.js ni abrir una terminal. Es el ejecutable portátil completo para Windows 10/11 x64. [Ayuda de uso](WINDOWS.md). La publicación incluye la huella SHA-256 del ejecutable.
 
-La versión 1.1.0 incorpora estudios R&R cruzados por ANOVA y retira Simulación de procesos y Evaluación económica. Cierra la versión anterior antes de abrir la nueva; el perfil y las mediciones se conservan. [Cambios](CHANGELOG.md).
+La versión 1.2.0 genera gráficas y resultados automáticamente al cargar archivos de valores, sin recapturar estudios. Cierra la versión anterior antes de abrir la nueva; el perfil y las mediciones se conservan. [Cambios](CHANGELOG.md).
 
 ## Aplicación de escritorio Windows (.exe)
 
-La entrega portátil de esta actualización es **Q-MONITOR-1.1.0-Portatil-x64.exe**. La variante **Q-MONITOR-Instalador-1.1.0-x64.exe** se puede generar en Windows con el flujo de GitHub Actions: instala la aplicación y crea accesos directos. [Instrucciones para Windows](WINDOWS.md).
+La entrega portátil de esta actualización es **Q-MONITOR-1.2.0-Portatil-x64.exe**. La variante **Q-MONITOR-Instalador-1.2.0-x64.exe** se puede generar en Windows con el flujo de GitHub Actions: instala la aplicación y crea accesos directos. [Instrucciones para Windows](WINDOWS.md).
 
 Los datos de escritorio quedan en **%APPDATA%\Q-MONITOR**, separados de la versión web; exporta respaldos JSON desde Reportes. No se necesita conexión a Internet para usarlo.
 
@@ -72,15 +72,15 @@ En **Reportes → Descargar respaldo completo**, descarga JSON con todos los reg
 
 Los errores de almacenamiento se muestran y no se confirman como guardados. No hay respaldo automático externo, cifrado, control de acceso ni garantía contra modificaciones desde las herramientas del navegador. No abras el mismo espacio en varias pestañas para editar simultáneamente: esta versión es local y de un solo operador.
 
-## R&R cruzado por ANOVA
+## Gráficas y resultados automáticos
 
-En **Análisis estadístico → R&R por ANOVA**, crea un estudio con nombre del sistema, fecha, responsable, característica y unidad. La tolerancia opcional es la amplitud **LSE − LIE**, no un límite aislado. Captura **Parte, Operador, Repetición y Medición** o pega desde Excel esas cuatro columnas (tabuladores o punto y coma; punto o coma decimal). No se toman mediciones históricas como réplicas automáticamente: la identificación experimental debe ser explícita.
+Pulsa **Cargar datos → Cargar archivo de valores** y selecciona CSV, TXT, TSV, Excel XLSX (primera hoja) o JSON. La aplicación reconoce las columnas numéricas y muestra automáticamente tendencia, histograma, caja y estadísticas: número de lecturas, media, mediana, desviación estándar, mínimo, máximo y rango. Con al menos 20 valores también estima límites exploratorios de control individual I–MR según el orden de los datos. No necesitas crear un estudio ni volver a capturar valores, parte, operador o repetición.
 
-Todos los operadores miden las mismas partes. El cálculo requiere al menos 2 partes, 2 operadores y de 2 a 10 repeticiones por combinación, numeradas desde 1; se recomiendan **10 partes × 3 operadores × 2 repeticiones = 60 lecturas**. No admite duplicados ni diseños desbalanceados. Cada estudio representa una característica y una unidad; no mezcles instrumentos, unidades ni tipos de humedad. Aleatoriza el orden de medición y usa partes representativas.
+Un archivo puede tener una sola columna, con o sin encabezado. Para varias columnas, cada magnitud se analiza por separado; no se mezclan unidades. Se aceptan punto decimal y, en TXT de una columna o CSV con punto y coma/tabuladores, coma decimal. JSON admite listas de números, matrices u objetos con columnas. Los errores no reemplazan datos existentes. **Datos analizados** cambia entre columnas y archivos. La captura manual anterior permanece como opción plegada; las correcciones y el historial siguen disponibles.
 
-Al guardar, importar o corregir lecturas se recalculan las tablas y las seis gráficas. Se muestran ANOVA con interacción y, si p de interacción ≥ 0.05, el modelo final con interacción agrupada en el error. Los componentes negativos se estiman como cero. Incluye repetibilidad, reproducibilidad, interacción, parte a parte, % contribución, % variación de estudio (6s), % tolerancia y ndc. Los límites X̄–R usan A₂, D₃ y D₄ según el número de repeticiones. Criterio orientativo: ≤10 % aceptable, >10–30 % marginal, >30 % inaceptable, aplicado a % variación de estudio de R&R.
+Las mediciones ya guardadas se analizan automáticamente por variable, producto, lote, etapa e instrumento. Los archivos importados se guardan en el respaldo JSON y se conservan al reiniciar; no reemplazan mediciones, reglas, auditoría ni estudios anteriores. **Imprimir resultados / PDF** genera el informe visible. Los filtros de producto y lote afectan al historial; los archivos se seleccionan independientemente.
 
-**Exportar lecturas R&R (CSV)** descarga las lecturas del estudio. **Imprimir R&R / PDF** imprime el resumen, las seis gráficas y tablas ANOVA. El respaldo JSON de Reportes también incluye los estudios R&R. Los respaldos anteriores de la versión 1 siguen siendo compatibles; se conservan las mediciones, reglas, auditoría y datos legados de los módulos retirados, aunque estos ya no se muestran.
+**R&R por ANOVA requiere un diseño experimental identificado**. No es posible separar repetibilidad y reproducibilidad con una lista de valores sin identificar. Si un archivo ya contiene columnas Parte, Operador y Repetición, se reconocen automáticamente y se calcula R&R cuando el diseño está completo y balanceado (mínimo 2 partes, 2 operadores y 2–10 réplicas por combinación, numeradas desde 1). No aparecen formularios para capturarlas. Si solo hay valores, se muestran las gráficas y estadísticas disponibles y se informa que R&R no es estimable; nunca se inventan operadores, partes o réplicas. Los estudios R&R guardados de 1.1.0 siguen disponibles como datos analizados.
 
 ## Métodos de cálculo
 
@@ -118,7 +118,8 @@ Futuras mejoras: backend con base de datos y migraciones, autenticación y permi
 ## Estructura
 
 - `src/rr.ts`: ANOVA cruzado, componentes de varianza y límites X̄–R.
-- `src/RrAnalysis.tsx`, `src/RrReport.tsx`: estudios R&R, captura, gráficas y salida imprimible.
+- `src/AutomaticAnalysis.tsx`, `src/analysis-data.ts`: carga de archivos, reconocimiento de columnas y resultados automáticos.
+- `src/RrReport.tsx`: informe R&R cuando los datos ya tienen identificación experimental.
 - `src/domain.ts`: modelos, validación, cálculos y exportación tabular.
 - `src/main.tsx`: navegación y flujos de los ocho módulos.
 - `src/AdvancedCharts.tsx`: control estadístico y repetibilidad.

@@ -1,114 +1,66 @@
 import { test, expect, type Page } from "@playwright/test";
 import { demo } from "../src/domain";
-
-const data = [-2, 0, 2].flatMap((part, i) =>
-  [-0.5, 0.5].flatMap((operator, j) =>
-    [-1, 1].map((e, k) => ({
-      part: `P${i + 1}`,
-      operator: j ? "B" : "A",
-      repetition: k + 1,
-      value: 10 + part + operator + (i - 1) * (j === 0 ? 1 : -1) + e * 0.2,
-    })),
-  ),
-);
-const table = data
-  .map((r) => [r.part, r.operator, r.repetition, r.value].join(";"))
-  .join("\n");
-async function analysis(page: Page) {
-  await page
-    .getByRole("button", { name: "Análisis estadístico", exact: true })
-    .click();
-}
-async function createStudy(page: Page) {
-  await analysis(page);
-  await page
-    .getByLabel("Nombre del sistema de medición", { exact: false })
-    .fill("Calibrador R&R");
-  await page.getByLabel("Notificado por").fill("Responsable QA");
-  await page.getByLabel("Característica medida").fill("Diámetro");
-  await page.getByLabel("Unidad *", { exact: true }).fill("mm");
-  await page.getByLabel("Amplitud de tolerancia").fill("10");
-  await page
-    .getByRole("button", { name: "Guardar estudio", exact: true })
-    .click();
-}
-async function pasteTable(page: Page, text: string) {
-  const details = page.locator("details").filter({
-    has: page.getByText("Agregar varias lecturas desde Excel o una tabla", {
-      exact: true,
-    }),
-  });
-  if (!(await details.getAttribute("open").then((v) => v !== null)))
-    await details.locator("summary").click();
-  await page.getByLabel("Tabla de lecturas R&R").fill(text);
-  await page
-    .getByRole("button", { name: "Agregar tabla de lecturas", exact: true })
-    .click();
-}
-test("R&R: conserva historial 1.0.x, calcula ANOVA, actualiza seis gráficas, persiste y respalda", async ({
+import writeExcel from "write-excel-file/node";
+const upload = async (page: Page, name: string, values: string) =>
+  page
+    .getByLabel("Cargar archivo de valores", { exact: true })
+    .setInputFiles({
+      name,
+      mimeType: "text/plain",
+      buffer: Buffer.from(values),
+    });
+const readStat = (page: Page, label: string) =>
+  page
+    .getByTestId("auto-stats")
+    .locator("div")
+    .filter({ has: page.getByText(label, { exact: true }) })
+    .locator("strong");
+test("cargar solo valores genera resultados sin campos R&R y conserva datos anteriores", async ({
   page,
 }) => {
   const legacy = demo();
   legacy.simulation = { source: "legado" };
-  legacy.economy = { cost: "123" };
   await page.goto("/");
   await page.evaluate(
     (s) => localStorage.setItem("qmonitor-real", JSON.stringify(s)),
     legacy,
   );
   await page.reload();
-  const errors: string[] = [];
-  page.on("pageerror", (e) => errors.push(e.message));
+  await page.getByRole("button", { name: "Cargar datos", exact: true }).click();
   await expect(
-    page.getByRole("button", { name: "Simulación de procesos", exact: true }),
-  ).toHaveCount(0);
+    page.getByRole("heading", { name: "Nueva medición manual", exact: true }),
+  ).not.toBeVisible();
+  await upload(
+    page,
+    "temperatura.csv",
+    "Temperatura (°C)\n" +
+      Array.from({ length: 24 }, (_, i) => 20 + i).join("\n"),
+  );
   await expect(
-    page.getByRole("button", { name: "Evaluación económica", exact: true }),
-  ).toHaveCount(0);
-  await createStudy(page);
-  await pasteTable(page, "Parte;Operador;Repetición;Medición\n" + table);
-  await expect(page.getByTestId("rr-count")).toHaveText("12");
-  await expect(page.getByTestId("rr-verdict")).toContainText("63.621 %");
-  await expect(page.getByTestId("rr-components")).toContainText("2.04");
-  const charts = page.locator(".rr-chart");
-  await expect(charts).toHaveCount(6);
-  for (const c of await charts.all())
-    await expect(c.locator("svg").first()).toBeVisible();
-  for (const label of [
-    "Gráfica R por operadores",
-    "Gráfica Xbarra por operadores",
-  ]) {
-    await expect(
-      page
-        .locator(`.rr-chart[aria-label="${label}"]`)
-        .getByText("LCS", { exact: true }),
-    ).toBeVisible();
-  }
-  const before = await page.getByTestId("rr-verdict").innerText();
-  const oldPath = await page
-    .locator(
-      '.rr-chart[aria-label="Interacción partes por operadores"] .recharts-line-curve',
-    )
-    .first()
-    .getAttribute("d");
-  await page
-    .getByText("Datos guardados del estudio (12)", { exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Corregir lectura P1 / A / 1", exact: true })
-    .click();
-  await page.getByLabel("Medición (mm) *", { exact: true }).fill("9.9");
-  await page
-    .getByRole("button", { name: "Guardar corrección R&R", exact: true })
-    .click();
-  await expect(page.getByTestId("rr-verdict")).not.toHaveText(before);
+    page.getByRole("heading", {
+      level: 1,
+      name: "Análisis estadístico",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(readStat(page, "Lecturas")).toHaveText("24");
+  await expect(readStat(page, "Media")).toHaveText("31.5");
   await expect(
-    page
-      .locator(
-        '.rr-chart[aria-label="Interacción partes por operadores"] .recharts-line-curve',
-      )
-      .first(),
-  ).not.toHaveAttribute("d", oldPath!);
+    page.getByTestId("auto-charts").locator(".rr-chart"),
+  ).toHaveCount(4);
+  await expect(page.getByLabel("Parte *", { exact: true })).toHaveCount(0);
+  await expect(page.getByLabel("Operador R&R *", { exact: true })).toHaveCount(
+    0,
+  );
+  await expect(page.getByLabel("Repetición *", { exact: true })).toHaveCount(0);
+  await expect(page.getByTestId("rr-unavailable")).toContainText(
+    "no estimable",
+  );
+  await page.reload();
+  await page
+    .getByRole("button", { name: "Análisis estadístico", exact: true })
+    .click();
+  await expect(readStat(page, "Media")).toHaveText("31.5");
   const saved = await page.evaluate(() =>
     JSON.parse(localStorage.getItem("qmonitor-real")!),
   );
@@ -116,14 +68,6 @@ test("R&R: conserva historial 1.0.x, calcula ANOVA, actualiza seis gráficas, pe
   expect(saved.rules).toEqual(legacy.rules);
   expect(saved.trials).toEqual(legacy.trials);
   expect(saved.simulation).toEqual(legacy.simulation);
-  expect(saved.economy).toEqual(legacy.economy);
-  const updated = await page.getByTestId("rr-verdict").innerText();
-  await page.reload();
-  await analysis(page);
-  await expect(page.getByTestId("rr-verdict")).toHaveText(updated);
-  await pasteTable(page, table.split("\n")[0]);
-  await expect(page.getByRole("alert")).toContainText("duplicada");
-  await expect(page.getByTestId("rr-count")).toHaveText("12");
   await page
     .getByRole("button", { name: "Reportes y exportación", exact: true })
     .click();
@@ -133,58 +77,103 @@ test("R&R: conserva historial 1.0.x, calcula ANOVA, actualiza seis gráficas, pe
     .click();
   const file = await download;
   const fs = await import("node:fs/promises");
-  const backup = JSON.parse(await fs.readFile((await file.path())!, "utf8"));
-  expect(backup).toEqual(saved);
-  await analysis(page);
-  await page.emulateMedia({ media: "print" });
-  await expect(page.getByTestId("rr-report")).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "Exploración gráfica", exact: true }),
-  ).not.toBeVisible();
-  expect(errors).toEqual([]);
+  expect(
+    JSON.parse(await fs.readFile((await file.path())!, "utf8"))
+      .analysisDatasets,
+  ).toEqual(saved.analysisDatasets);
 });
-test("R&R incompleto no calcula hasta guardar la última réplica; importación inválida es atómica", async ({
+test("las gráficas se actualizan al cargar otro archivo, sin botón calcular; importación inválida conserva datos", async ({
   page,
 }) => {
   await page.goto("/");
-  await createStudy(page);
-  await pasteTable(page, table.split("\n").slice(0, -1).join("\n"));
-  await expect(page.getByTestId("rr-report")).toHaveCount(0);
-  await expect(page.locator(".rr-analysis")).toContainText("Diseño incompleto");
-  const last = data[data.length - 1];
-  await page.getByLabel("Parte *", { exact: true }).fill(last.part);
-  await page.getByLabel("Operador R&R *", { exact: true }).fill(last.operator);
   await page
-    .getByLabel("Repetición *", { exact: true })
-    .fill(String(last.repetition));
-  await page
-    .getByLabel("Medición (mm) *", { exact: true })
-    .fill(String(last.value));
-  await page
-    .getByRole("button", { name: "Guardar lectura R&R", exact: true })
+    .getByRole("button", { name: "Análisis estadístico", exact: true })
     .click();
-  await expect(page.getByTestId("rr-count")).toHaveText("12");
-  const before = await page.evaluate(() =>
+  await upload(page, "primero.json", "[1,2,3]");
+  await expect(readStat(page, "Media")).toHaveText("2");
+  const curve = page.locator(
+    '[aria-label="Tendencia automática"] .recharts-line-curve',
+  );
+  const before = await curve.getAttribute("d");
+  await upload(page, "segundo.csv", "Valor\n10\n20\n40\n80");
+  await expect(readStat(page, "Media")).toHaveText("37.5");
+  await expect(curve).not.toHaveAttribute("d", before!);
+  const stored = await page.evaluate(() =>
     localStorage.getItem("qmonitor-real"),
   );
-  await pasteTable(page, "P4;A;1;25\nP4;A;2;no-numérico");
-  await expect(page.getByRole("alert")).toContainText("finita");
+  await upload(page, "invalido.csv", "Valor\n10\nno-numérico");
+  await expect(page.getByRole("alert")).toContainText("no numéricos");
   expect(
     await page.evaluate(() => localStorage.getItem("qmonitor-real")),
-  ).toEqual(before);
+  ).toEqual(stored);
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect(page.getByTestId("rr-report")).toBeVisible();
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth),
   ).toBeLessThanOrEqual(390);
+  await page.emulateMedia({ media: "print" });
+  await expect(page.getByTestId("auto-stats")).toBeVisible();
+  await expect(
+    page.getByLabel("Cargar archivo de valores", { exact: true }),
+  ).not.toBeVisible();
 });
-test("R&R no confirma una lectura si falla el almacenamiento", async ({
+test("Excel XLSX se carga sin escribir valores ni metadatos", async ({
+  page,
+}) => {
+  const buffer = await writeExcel([
+    [{ value: "Temperatura (°C)" }],
+    [{ value: 20, type: Number }],
+    [{ value: 22, type: Number }],
+    [{ value: 24, type: Number }],
+  ]).toBuffer();
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: "Análisis estadístico", exact: true })
+    .click();
+  await page
+    .getByLabel("Cargar archivo de valores", { exact: true })
+    .setInputFiles({
+      name: "datos.xlsx",
+      mimeType:
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      buffer,
+    });
+  await expect(readStat(page, "Lecturas")).toHaveText("3");
+  await expect(readStat(page, "Media")).toHaveText("22");
+});
+test("R&R se calcula automáticamente solo si el archivo ya contiene identificación, sin mostrar formularios", async ({
+  page,
+}) => {
+  const rows = [1, 2, 3].flatMap((part) =>
+    ["Ana", "Luis"].flatMap((op, j) =>
+      [1, 2].map((rep) =>
+        [part, op, rep, 10 + part + j * 0.1 + rep * 0.05].join(";"),
+      ),
+    ),
+  );
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: "Análisis estadístico", exact: true })
+    .click();
+  await upload(
+    page,
+    "rr.csv",
+    "Parte;Operador;Repetición;Medición\n" + rows.join("\n"),
+  );
+  await expect(page.getByTestId("rr-count")).toHaveText("12");
+  await expect(page.getByTestId("rr-report")).toBeVisible();
+  await expect(page.getByLabel("Parte *", { exact: true })).toHaveCount(0);
+  await page.emulateMedia({ media: "print" });
+  await expect(page.getByTestId("rr-report")).toBeVisible();
+});
+test("un fallo de almacenamiento no confirma la carga ni pierde los datos existentes", async ({
   page,
 }) => {
   await page.goto("/");
-  await createStudy(page);
-  await pasteTable(page, table);
-  const before = await page.evaluate(() =>
+  await page
+    .getByRole("button", { name: "Análisis estadístico", exact: true })
+    .click();
+  await upload(page, "original.json", "[1,2,3]");
+  const stored = await page.evaluate(() =>
     localStorage.getItem("qmonitor-real"),
   );
   await page.evaluate(() => {
@@ -192,15 +181,12 @@ test("R&R no confirma una lectura si falla el almacenamiento", async ({
       throw Error("Disco lleno");
     };
   });
-  await page.getByLabel("Parte *", { exact: true }).fill("P4");
-  await page.getByLabel("Operador R&R *", { exact: true }).fill("A");
-  await page.getByLabel("Medición (mm) *", { exact: true }).fill("25");
-  await page
-    .getByRole("button", { name: "Guardar lectura R&R", exact: true })
-    .click();
-  await expect(page.getByRole("alert")).toContainText("No se guardaron");
-  await expect(page.getByTestId("rr-count")).toHaveText("12");
+  await upload(page, "nuevo.json", "[10,20,30]");
+  await expect(
+    page.getByRole("alert").filter({ hasText: "No se guardó el archivo" }),
+  ).toBeVisible();
+  await expect(readStat(page, "Media")).toHaveText("2");
   expect(
     await page.evaluate(() => localStorage.getItem("qmonitor-real")),
-  ).toEqual(before);
+  ).toEqual(stored);
 });

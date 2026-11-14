@@ -24,9 +24,8 @@ test("HTML empaquetado: sin recursos externos, guarda y exporta", async ({
   await expect(
     page.getByRole("heading", { name: "Dashboard general", exact: true }),
   ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Nueva medición", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Cargar datos", exact: true }).click();
+  await page.getByText("Captura manual opcional", { exact: true }).click();
   for (const [name, value] of Object.entries({
     product: "Prueba portátil",
     lot: "PC-01",

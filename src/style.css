@@ -1507,10 +1507,10 @@ button.destructive:disabled {
   body:has(.rr-report)
     main
     .content
-    > :not(.rr-analysis):not(:has(.rr-analysis)) {
+    > :not(.automatic-analysis):not(:has(.automatic-analysis)) {
     display: none !important;
   }
-  body:has(.rr-report) .content > .panel:not(.rr-analysis) {
+  body:has(.rr-report) .content > .panel:not(.automatic-analysis) {
     display: none !important;
   }
   .rr-analysis {
@@ -1537,5 +1537,53 @@ button.destructive:disabled {
   }
   .rr-report {
     font-size: 10px;
+  }
+}
+.auto-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin: 24px 0;
+}
+.auto-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #f4f8fb;
+  padding: 16px;
+  border-radius: 8px;
+}
+.auto-stats span {
+  color: #687e8f;
+  font-size: 12px;
+}
+.auto-stats strong {
+  font-size: 22px;
+}
+.automatic-analysis {
+  margin-bottom: 24px;
+}
+.automatic-analysis > label {
+  margin: 16px 0;
+}
+.manual-capture {
+  margin: 24px 0;
+}
+.manual-capture > summary {
+  cursor: pointer;
+  padding: 14px;
+  color: #617689;
+}
+@media (max-width: 650px) {
+  .auto-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media print {
+  body:has(.automatic-analysis) .content > .panel:not(.automatic-analysis) {
+    display: none !important;
+  }
+  .automatic-analysis .rr-chart {
+    break-inside: avoid;
   }
 }
